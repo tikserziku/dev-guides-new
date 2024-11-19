@@ -1,0 +1,56 @@
+﻿<context_pattern>
+    <documentation>
+        <source>https://dev-guides-docs-4670-b366ea1b6354.herokuapp.com/</source>
+        <version>1.0</version>
+        <last_updated>2024-11-19</last_updated>
+    </documentation>
+
+    <coding_patterns>
+        <pattern id="file_manipulation">
+            <description>Паттерн для работы с файлами в PowerShell</description>
+            <example>
+                <![CDATA[
+                (Get-Content filename.js) | ForEach-Object {
+                    if ($_ -match "pattern") {
+                        @'
+                        new code
+                        '@
+                    } else { $_ }
+                } | Set-Content filename.js
+                ]]>
+            </example>
+            <reference>Section 2.1 in guide</reference>
+        </pattern>
+
+        <pattern id="git_workflow">
+            <description>Рабочий процесс с Git</description>
+            <steps>
+                <step>git add specific_files</step>
+                <step>git commit -m "descriptive message"</step>
+                <step>git push target branch</step>
+            </steps>
+            <reference>Section 3.1 in guide</reference>
+        </pattern>
+    </coding_patterns>
+
+    <best_practices>
+        <practice id="code_review">
+            <checklist>
+                - Форматирование кода
+                - Комментарии
+                - Тесты
+                - Документация
+                - Безопасность
+            </checklist>
+        </practice>
+    </best_practices>
+
+    <instructions>
+        Before providing code solutions, I will:
+        1. Check the guide at {documentation.source}
+        2. Follow the established patterns
+        3. Include proper error handling
+        4. Provide step-by-step implementation
+        5. Add necessary documentation
+    </instructions>
+</context_pattern>

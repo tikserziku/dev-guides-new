@@ -1,8 +1,16 @@
 ﻿const express = require("express");
 const markdown = require("markdown-it");
 const fs = require("fs");
+const xml2js = require("xml2js");
 const app = express();
 const md = new markdown();
+
+// Добавляем обработку паттернов
+app.get("/patterns", (req, res) => {
+    const patterns = fs.readFileSync("patterns/ai_patterns.xml", "utf-8");
+    res.header("Content-Type", "application/xml");
+    res.send(patterns);
+});
 
 app.get("/", (req, res) => {
     const content = fs.readFileSync("README.md", "utf-8");
@@ -31,6 +39,8 @@ app.get("/", (req, res) => {
         </head>
         <body>
             ${html}
+            <hr>
+            <p><a href="/patterns">View AI Patterns</a></p>
         </body>
         </html>
     `);
