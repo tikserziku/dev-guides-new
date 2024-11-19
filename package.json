@@ -1,0 +1,13 @@
+﻿{
+  "name": "dev-guides",
+  "version": "1.0.0",
+  "description": "Development Guides and Best Practices",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.17.1",
+    "markdown-it": "^12.0.4"
+  }
+}
