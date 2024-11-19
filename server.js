@@ -1,49 +1,38 @@
-﻿const express = require("express");
+﻿require('dotenv').config();
+const express = require("express");
 const markdown = require("markdown-it");
 const fs = require("fs");
 const path = require("path");
+const ClaudeService = require("./services/claude");
 const app = express();
 const md = new markdown();
 
+const claude = new ClaudeService(process.env.CLAUDE_API_KEY);
+
 app.use(express.json());
-
-// Существующие маршруты
-app.get("/patterns", (req, res) => {
-    const patterns = fs.readFileSync("patterns/ai_patterns.xml", "utf-8");
-    res.header("Content-Type", "application/xml");
-    res.send(patterns);
-});
-
-// Новый маршрут для генератора проектов
-app.get("/generator", (req, res) => {
-    const generatorHtml = fs.readFileSync("project-generator/index.html", "utf-8");
-    res.send(generatorHtml);
-});
 
 // API для генерации структуры
 app.post("/api/generate-structure", async (req, res) => {
-    const { description } = req.body;
-    // Здесь будет интеграция с Claude API
-    const structure = {
-        name: "generated-project",
-        folders: [
-            {
-                name: "src",
-                files: ["index.js", "app.js"]
-            },
-            {
-                name: "docs",
-                files: ["README.md"]
-            }
-        ]
-    };
-    res.json(structure);
+    try {
+        const { description } = req.body;
+        const structure = await claude.generateProjectStructure(description);
+        res.json(structure);
+    } catch (error) {
+        console.error('Error generating structure:', error);
+        res.status(500).json({ error: 'Failed to generate structure' });
+    }
 });
 
 // API для генерации кода
 app.post("/api/generate-code", async (req, res) => {
-    // Здесь будет генерация кода через Claude API
-    res.json({ status: "success" });
+    try {
+        const { structure } = req.body;
+        const code = await claude.generateCode(structure);
+        res.json(code);
+    } catch (error) {
+        console.error('Error generating code:', error);
+        res.status(500).json({ error: 'Failed to generate code' });
+    }
 });
 
 // Основной маршрут
