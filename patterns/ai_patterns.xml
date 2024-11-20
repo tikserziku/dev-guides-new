@@ -1,13 +1,7 @@
-﻿<context_pattern>
-    <documentation>
-        <source>https://dev-guides-docs-4670-b366ea1b6354.herokuapp.com/</source>
-        <version>1.0</version>
-        <last_updated>2024-11-19</last_updated>
-    </documentation>
-    <coding_patterns>
-        <pattern id="file_manipulation">
-            <description>Паттерн для работы с файлами в PowerShell</description>
-            <reference>Section 2.1 in guide</reference>
-        </pattern>
-    </coding_patterns>
-</context_pattern>
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<patterns>
+    <pattern id="file_manipulation">
+        <description>Паттерн для работы с файлами в PowerShell</description>
+        <code>Section 2.1 in guide</code>
+    </pattern>
+</patterns>
