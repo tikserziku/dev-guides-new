@@ -4,7 +4,6 @@ const markdown = require("markdown-it");
 const fs = require("fs");
 const path = require("path");
 const xsltProcessor = require('xslt-processor');
-const libxmljs = require('libxmljs');
 const xml2js = require('xml2js');
 const ClaudeService = require("./services/claude");
 
@@ -85,14 +84,22 @@ app.get('/patterns', (req, res) => {
         const xml = fs.readFileSync(xmlFilePath, 'utf-8');
         const xsl = fs.readFileSync(xslFilePath, 'utf-8');
 
-        // Преобразование XML с использованием XSLT с помощью libxmljs и xsltProcessor
-        const xmlDoc = libxmljs.parseXml(xml);
-        const xslDoc = libxmljs.parseXml(xsl);
-        const result = xsltProcessor.xsltProcess(xmlDoc, xslDoc);
+        // Преобразование XML с использованием XSLT с помощью xml2js и xsltProcessor
+        xml2js.parseString(xml, (err, xmlDoc) => {
+            if (err) {
+                throw new Error('Ошибка при парсинге XML: ' + err.message);
+            }
+            const xslDoc = xsltProcessor.xmlParse(xsl);
+            const result = xsltProcessor.xsltProcess(xmlDoc, xslDoc);
 
-        // Отправка результата
-        res.set('Content-Type', 'text/html');
-        res.send(result);
+            // Запись результата в локальный файл перед отправкой
+            const resultFilePath = path.join(__dirname, 'patterns', 'result.html');
+            fs.writeFileSync(resultFilePath, result);
+
+            // Отправка результата
+            res.set('Content-Type', 'text/html');
+            res.sendFile(resultFilePath);
+        });
     } catch (error) {
         console.error('Ошибка при обработке XML и XSL:', error);
         res.status(500).send('Ошибка при обработке паттернов');
