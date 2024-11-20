@@ -3,7 +3,10 @@ const express = require("express");
 const markdown = require("markdown-it");
 const fs = require("fs");
 const path = require("path");
+const xsltProcessor = require('xslt-processor');
+const { xmlParse } = xsltProcessor;
 const ClaudeService = require("./services/claude");
+
 const app = express();
 const md = new markdown();
 
@@ -11,7 +14,6 @@ const claude = new ClaudeService(process.env.CLAUDE_API_KEY);
 
 app.use(express.json());
 app.use(express.static('public'));
-app.use('/patterns', express.static('patterns'));
 
 // API для генерации структуры
 app.post("/api/generate-structure", async (req, res) => {
@@ -47,7 +49,6 @@ app.get("/", (req, res) => {
         <head>
             <title>Development Guide</title>
             <style>
-            <style>
                 body {
                     max-width: 800px;
                     margin: 0 auto;
@@ -73,8 +74,29 @@ app.get("/", (req, res) => {
     `);
 });
 
+// Маршрут для отображения паттернов с использованием XSLT
+app.get('/patterns', (req, res) => {
+    try {
+        // Чтение XML и XSL файлов
+        const xmlFilePath = path.join(__dirname, 'patterns', 'ai_patterns.xml');
+        const xslFilePath = path.join(__dirname, 'patterns', 'patterns.xsl');
+
+        const xml = fs.readFileSync(xmlFilePath, 'utf-8');
+        const xsl = fs.readFileSync(xslFilePath, 'utf-8');
+
+        // Преобразование XML с использованием XSLT
+        const xmlDoc = xmlParse(xml);
+        const xslDoc = xmlParse(xsl);
+        const result = xsltProcessor.xsltProcess(xmlDoc, xslDoc);
+
+        // Отправка результата
+        res.set('Content-Type', 'text/html');
+        res.send(result);
+    } catch (error) {
+        console.error('Ошибка при обработке XML и XSL:', error);
+        res.status(500).send('Ошибка при обработке паттернов');
+    }
+});
+
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log("Server running on port " + PORT));
-
-// ... (остальной код server.js остается без изменений)
-
