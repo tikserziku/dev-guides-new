@@ -4,7 +4,7 @@ const markdown = require("markdown-it");
 const fs = require("fs");
 const path = require("path");
 const xsltProcessor = require('xslt-processor');
-const { xmlParse } = require('xslt-processor');
+const libxmljs = require('libxmljs');
 const xml2js = require('xml2js');
 const ClaudeService = require("./services/claude");
 
@@ -85,9 +85,9 @@ app.get('/patterns', (req, res) => {
         const xml = fs.readFileSync(xmlFilePath, 'utf-8');
         const xsl = fs.readFileSync(xslFilePath, 'utf-8');
 
-        // Преобразование XML с использованием XSLT с помощью xsltProcessor
-        const xmlDoc = xmlParse(xml);
-        const xslDoc = xmlParse(xsl);
+        // Преобразование XML с использованием XSLT с помощью libxmljs и xsltProcessor
+        const xmlDoc = libxmljs.parseXml(xml);
+        const xslDoc = libxmljs.parseXml(xsl);
         const result = xsltProcessor.xsltProcess(xmlDoc, xslDoc);
 
         // Отправка результата
