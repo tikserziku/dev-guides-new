@@ -1,4 +1,5 @@
-﻿    constructor(apiKey) {
+﻿class ClaudeService {
+    constructor(apiKey) {
         this.apiKey = apiKey;
     }
 
@@ -24,4 +25,4 @@
     }
 }
 
-module.exports = ClaudeService;'
+module.exports = ClaudeService;
