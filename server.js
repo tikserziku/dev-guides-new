@@ -10,6 +10,8 @@ const md = new markdown();
 const claude = new ClaudeService(process.env.CLAUDE_API_KEY);
 
 app.use(express.json());
+app.use(express.static('public'));
+app.use('/patterns', express.static('patterns'));
 
 // API для генерации структуры
 app.post("/api/generate-structure", async (req, res) => {
@@ -45,6 +47,7 @@ app.get("/", (req, res) => {
         <head>
             <title>Development Guide</title>
             <style>
+            <style>
                 body {
                     max-width: 800px;
                     margin: 0 auto;
@@ -74,3 +77,4 @@ const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log("Server running on port " + PORT));
 
 // ... (остальной код server.js остается без изменений)
+
