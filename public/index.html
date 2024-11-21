@@ -1,12 +1,162 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html>
 <head>
     <title>AI Project Generator</title>
-    <script src="https://unpkg.com/react@17/umd/react.development.js"></script>
-    <script src="https://unpkg.com/react-dom@17/umd/react-dom.development.js"></script>
-    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        textarea {
+            width: 100%;
+            min-height: 200px;
+            margin: 10px 0;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 16px;
+        }
+        button {
+            padding: 10px 20px;
+            margin: 5px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        button:disabled {
+            background-color: #ccc;
+        }
+        .loading {
+            display: none;
+            margin: 10px 0;
+            color: #666;
+        }
+        pre {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 4px;
+            white-space: pre-wrap;
+            overflow-x: auto;
+        }
+        .error {
+            color: red;
+            padding: 10px;
+            margin: 10px 0;
+        }
+    </style>
 </head>
 <body>
-    <div id="root"></div>
+    <div class="container">
+        <h1>AI Project Generator</h1>
+        <div>
+            <label>Project Description:</label>
+            <textarea id="description" placeholder="Опишите ваш проект подробно..."></textarea>
+        </div>
+        <div>
+            <button onclick="generateStructure()" id="structureBtn">Generate Structure</button>
+            <button onclick="generateCode()" id="codeBtn" style="display: none;">Generate Code</button>
+            <div id="loading" class="loading">Generating...</div>
+        </div>
+        <div id="error" class="error" style="display: none;"></div>
+        <div id="output"></div>
+    </div>
+
+    <script>
+        let currentStructure = null;
+
+        async function generateStructure() {
+            try {
+                const description = document.getElementById('description').value;
+                if (!description) {
+                    showError('Please enter a project description');
+                    return;
+                }
+
+                showLoading(true);
+                const response = await fetch('/api/generate-structure', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ description })
+                });
+
+                const data = await response.json();
+                if (data.error) throw new Error(data.error);
+
+                currentStructure = data;
+                document.getElementById('output').innerHTML = '<h3>Project Structure:</h3><pre>' + 
+                    JSON.stringify(data, null, 2) + '</pre>';
+                document.getElementById('codeBtn').style.display = 'inline';
+                
+                showLoading(false);
+            } catch (error) {
+                console.error('Error:', error);
+                showError(error.message);
+                showLoading(false);
+            }
+        }
+
+        async function generateCode() {
+            try {
+                if (!currentStructure) {
+                    showError('Please generate structure first');
+                    return;
+                }
+
+                showLoading(true);
+                const description = document.getElementById('description').value;
+                const response = await fetch('/api/generate-code', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ structure: currentStructure, description })
+                });
+
+                const data = await response.json();
+                if (data.error) throw new Error(data.error);
+
+                const output = document.getElementById('output');
+                output.innerHTML += '<h3>Generated Code:</h3>';
+                
+                Object.entries(data).forEach(([path, content]) => {
+                    output.innerHTML += `<div class="file">
+                        <h4>${path}</h4>
+                        <pre>${content}</pre>
+                    </div>`;
+                });
+                
+                showLoading(false);
+            } catch (error) {
+                console.error('Error:', error);
+                showError(error.message);
+                showLoading(false);
+            }
+        }
+
+        function showLoading(show) {
+            document.getElementById('loading').style.display = show ? 'block' : 'none';
+            document.getElementById('structureBtn').disabled = show;
+            document.getElementById('codeBtn').disabled = show;
+        }
+
+        function showError(message) {
+            const error = document.getElementById('error');
+            error.textContent = message;
+            error.style.display = 'block';
+            setTimeout(() => {
+                error.style.display = 'none';
+            }, 5000);
+        }
+    </script>
 </body>
 </html>

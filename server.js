@@ -9,6 +9,12 @@ app.use(express.static('public'));
 
 const CLAUDE_API_KEY = process.env.CLAUDE_API_KEY;
 
+// Маршрут для главной страницы генератора
+app.get('/generator', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'index.html'));
+});
+
+// API для генерации структуры
 app.post("/api/generate-structure", async (req, res) => {
     try {
         const { description } = req.body;
@@ -54,21 +60,18 @@ app.post("/api/generate-structure", async (req, res) => {
             throw new Error(data.error.message);
         }
 
-        const structureContent = data.content[0].text;
-        console.log("Structure content:", structureContent);
-
-        const structureJson = JSON.parse(structureContent);
-        res.json(structureJson);
+        res.json(JSON.parse(data.content[0].text));
     } catch (error) {
         console.error("Structure generation error:", error);
         res.status(500).json({ error: error.message });
     }
 });
 
+// API для генерации кода
 app.post("/api/generate-code", async (req, res) => {
     try {
         const { structure, description } = req.body;
-        console.log("Generating code for structure:", structure);
+        console.log("Generating code for:", structure);
 
         const response = await fetch('https://api.anthropic.com/v1/messages', {
             method: 'POST',
@@ -84,8 +87,7 @@ app.post("/api/generate-code", async (req, res) => {
                     role: "user",
                     content: `Generate complete, production-ready code for this project: ${description}
                     Project structure: ${JSON.stringify(structure)}
-                    Return ONLY a JSON object where keys are file paths and values are complete file contents.
-                    Include all necessary code, styles, and configuration files.`
+                    Return ONLY a JSON object where keys are file paths and values are complete file contents.`
                 }]
             })
         });
@@ -97,11 +99,7 @@ app.post("/api/generate-code", async (req, res) => {
             throw new Error(data.error.message);
         }
 
-        const codeContent = data.content[0].text;
-        console.log("Code content:", codeContent);
-
-        const codeJson = JSON.parse(codeContent);
-        res.json(codeJson);
+        res.json(JSON.parse(data.content[0].text));
     } catch (error) {
         console.error("Code generation error:", error);
         res.status(500).json({ error: error.message });
