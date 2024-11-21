@@ -74,7 +74,6 @@ app.get("/", (req, res) => {
 // Новый маршрут для отображения паттернов в формате HTML
 app.get('/patterns', (req, res) => {
     try {
-        // Здесь можно хранить паттерны как объект в формате JSON
         const patterns = [
             {
                 id: "file_manipulation",
@@ -143,6 +142,76 @@ app.get('/patterns', (req, res) => {
     } catch (error) {
         console.error('Ошибка при получении паттернов:', error);
         res.status(500).send('Ошибка при получении паттернов');
+    }
+});
+
+// Новый маршрут для отображения страницы генератора проектов
+app.get('/generator', (req, res) => {
+    try {
+        const generatorHtml = `
+            <!DOCTYPE html>
+            <html>
+            <head>
+                <title>Project Generator</title>
+                <style>
+                    body {
+                        max-width: 800px;
+                        margin: 0 auto;
+                        padding: 20px;
+                        font-family: Arial, sans-serif;
+                    }
+                    label {
+                        display: block;
+                        margin: 15px 0 5px;
+                    }
+                    input, textarea {
+                        width: 100%;
+                        padding: 10px;
+                        margin-bottom: 15px;
+                        border-radius: 4px;
+                        border: 1px solid #ccc;
+                    }
+                    button {
+                        padding: 10px 20px;
+                        background-color: #28a745;
+                        color: white;
+                        border: none;
+                        border-radius: 4px;
+                        cursor: pointer;
+                    }
+                </style>
+            </head>
+            <body>
+                <h1>Project Generator</h1>
+                <form id="generator-form">
+                    <label for="description">Project Description:</label>
+                    <textarea id="description" rows="4" placeholder="Enter project description..."></textarea>
+                    <button type="button" onclick="generateProject()">Generate Project</button>
+                </form>
+                <pre id="output"></pre>
+                
+                <script>
+                    async function generateProject() {
+                        const description = document.getElementById('description').value;
+                        const response = await fetch('/api/generate-structure', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify({ description })
+                        });
+                        const structure = await response.json();
+                        document.getElementById('output').innerText = JSON.stringify(structure, null, 2);
+                    }
+                </script>
+            </body>
+            </html>
+        `;
+
+        res.send(generatorHtml);
+    } catch (error) {
+        console.error('Ошибка при отображении генератора:', error);
+        res.status(500).send('Ошибка при отображении генератора');
     }
 });
 
