@@ -7,8 +7,6 @@ const fetch = require("node-fetch");
 const app = express();
 app.use(express.json());
 app.use(express.static("public"));
-app.use(express.json());
-app.use(express.static('public'));
 
 // Функция для работы с Claude API
 async function callClaudeAPI(prompt) {
