@@ -18,8 +18,8 @@ app.post("/api/generate-structure", async (req, res) => {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                'anthropic-version': '2023-06-01',
-                'x-api-key': `${CLAUDE_API_KEY}`
+                'x-api-key': CLAUDE_API_KEY,
+                'anthropic-version': '2023-06-01'
             },
             body: JSON.stringify({
                 model: "claude-3-opus-20240229",
@@ -35,37 +35,38 @@ app.post("/api/generate-structure", async (req, res) => {
                             "script.js": "complete JavaScript code here"
                         }
                     }`
-                }],
-                max_tokens: 4000,
-                temperature: 0.7
+                }]
             })
         });
 
         console.log("API Response Status:", response.status);
-        const data = await response.json();
-        console.log("API Response:", JSON.stringify(data, null, 2));
-
-        if (data.error) {
-            throw new Error(data.error.message || 'API Error');
-        }
-
-        // Извлекаем текст из ответа
-        const result = data.content[0].text;
-        console.log("Generated result:", result);
+        const responseText = await response.text();
+        console.log("API Response Text:", responseText);
 
         try {
-            // Парсим JSON из текста
-            const structure = JSON.parse(result);
-            res.json(structure);
+            const data = JSON.parse(responseText);
+            console.log("Parsed Response:", data);
+
+            if (data.error) {
+                throw new Error(data.error.message);
+            }
+
+            // Get the actual content from Claude's response
+            const content = data.content[0].text;
+            console.log("Claude content:", content);
+
+            // Parse the JSON from Claude's response
+            const projectStructure = JSON.parse(content);
+            res.json(projectStructure);
         } catch (parseError) {
             console.error("Parse error:", parseError);
             res.status(500).json({ 
                 error: 'Failed to parse response',
-                rawResponse: result 
+                raw: responseText 
             });
         }
     } catch (error) {
-        console.error("Error:", error);
+        console.error("Request error:", error);
         res.status(500).json({ error: error.message });
     }
 });
@@ -78,5 +79,5 @@ const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);
     console.log('API Key status:', CLAUDE_API_KEY ? 'Present' : 'Missing');
-    console.log('API Key format check:', CLAUDE_API_KEY?.startsWith('sk-ant-api'));
+    console.log('API Key check:', CLAUDE_API_KEY?.startsWith('sk-ant-api'));
 });
