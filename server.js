@@ -8,32 +8,13 @@ app.use(express.json());
 app.use(express.static('public'));
 
 const CLAUDE_API_KEY = process.env.CLAUDE_API_KEY;
-const CLAUDE_API_URL = process.env.CLAUDE_API_URL || 'https://api.anthropic.com/v1/complete';
-
-// Добавляем обработку ошибок для статических файлов
-app.get('*', (req, res, next) => {
-    try {
-        if (req.path === '/generator') {
-            res.sendFile(path.join(__dirname, 'public', 'generator.html'));
-        } else {
-            next();
-        }
-    } catch (error) {
-        console.error('Static file error:', error);
-        res.status(500).send('Error loading page');
-    }
-});
 
 app.post("/api/generate-structure", async (req, res) => {
     try {
         const { description } = req.body;
         console.log("Generating structure for:", description);
 
-        if (!CLAUDE_API_KEY) {
-            throw new Error('CLAUDE_API_KEY is not set');
-        }
-
-        const response = await fetch(CLAUDE_API_URL, {
+        const response = await fetch('https://api.anthropic.com/v1/messages', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -41,25 +22,45 @@ app.post("/api/generate-structure", async (req, res) => {
                 'anthropic-version': '2023-06-01'
             },
             body: JSON.stringify({
-                prompt: `Create a detailed project structure for: ${description}`,
-                max_tokens_to_sample: 4000,
-                temperature: 0.7
+                model: "claude-3-opus-20240229",
+                max_tokens: 4000,
+                messages: [{
+                    role: "user",
+                    content: `Create a detailed project structure for this web application: ${description}
+                    Return response ONLY as a JSON object in this exact format:
+                    {
+                        "name": "project-name",
+                        "structure": {
+                            "files": [
+                                {
+                                    "path": "file path",
+                                    "description": "file purpose",
+                                    "content": "full file content"
+                                }
+                            ],
+                            "dependencies": {
+                                "required": ["dependency1", "dependency2"]
+                            }
+                        }
+                    }`
+                }]
             })
         });
 
-        console.log("API Response Status:", response.status);
         const data = await response.json();
-        console.log("API Response:", data);
+        console.log("Structure response:", data);
 
-        try {
-            const structureJson = JSON.parse(data.completion || '{}');
-            res.json(structureJson);
-        } catch (parseError) {
-            console.error('JSON Parse error:', parseError);
-            res.json({ error: 'Invalid response format' });
+        if (data.error) {
+            throw new Error(data.error.message);
         }
+
+        const structureContent = data.content[0].text;
+        console.log("Structure content:", structureContent);
+
+        const structureJson = JSON.parse(structureContent);
+        res.json(structureJson);
     } catch (error) {
-        console.error("API Error:", error);
+        console.error("Structure generation error:", error);
         res.status(500).json({ error: error.message });
     }
 });
@@ -67,13 +68,9 @@ app.post("/api/generate-structure", async (req, res) => {
 app.post("/api/generate-code", async (req, res) => {
     try {
         const { structure, description } = req.body;
-        console.log("Generating code for:", structure);
+        console.log("Generating code for structure:", structure);
 
-        if (!CLAUDE_API_KEY) {
-            throw new Error('CLAUDE_API_KEY is not set');
-        }
-
-        const response = await fetch(CLAUDE_API_URL, {
+        const response = await fetch('https://api.anthropic.com/v1/messages', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -81,25 +78,32 @@ app.post("/api/generate-code", async (req, res) => {
                 'anthropic-version': '2023-06-01'
             },
             body: JSON.stringify({
-                prompt: `Generate complete, production-ready code for: ${description}\nStructure: ${JSON.stringify(structure)}`,
-                max_tokens_to_sample: 4000,
-                temperature: 0.7
+                model: "claude-3-opus-20240229",
+                max_tokens: 4000,
+                messages: [{
+                    role: "user",
+                    content: `Generate complete, production-ready code for this project: ${description}
+                    Project structure: ${JSON.stringify(structure)}
+                    Return ONLY a JSON object where keys are file paths and values are complete file contents.
+                    Include all necessary code, styles, and configuration files.`
+                }]
             })
         });
 
-        console.log("API Response Status:", response.status);
         const data = await response.json();
-        console.log("API Response:", data);
+        console.log("Code response:", data);
 
-        try {
-            const codeJson = JSON.parse(data.completion || '{}');
-            res.json(codeJson);
-        } catch (parseError) {
-            console.error('JSON Parse error:', parseError);
-            res.json({ error: 'Invalid response format' });
+        if (data.error) {
+            throw new Error(data.error.message);
         }
+
+        const codeContent = data.content[0].text;
+        console.log("Code content:", codeContent);
+
+        const codeJson = JSON.parse(codeContent);
+        res.json(codeJson);
     } catch (error) {
-        console.error("API Error:", error);
+        console.error("Code generation error:", error);
         res.status(500).json({ error: error.message });
     }
 });
@@ -107,7 +111,5 @@ app.post("/api/generate-code", async (req, res) => {
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);
-    console.log('Environment:', process.env.NODE_ENV);
     console.log('API Key status:', CLAUDE_API_KEY ? 'Present' : 'Missing');
-    console.log('API URL:', CLAUDE_API_URL);
 });
