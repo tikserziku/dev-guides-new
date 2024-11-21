@@ -71,7 +71,7 @@ app.get("/", (req, res) => {
     `);
 });
 
-// Новый маршрут для отображения паттернов в формате JSON
+// Новый маршрут для отображения паттернов в формате HTML
 app.get('/patterns', (req, res) => {
     try {
         // Здесь можно хранить паттерны как объект в формате JSON
@@ -88,7 +88,58 @@ app.get('/patterns', (req, res) => {
             }
         ];
         
-        res.json(patterns);
+        let htmlContent = `
+            <!DOCTYPE html>
+            <html>
+            <head>
+                <title>AI Patterns</title>
+                <style>
+                    body {
+                        max-width: 800px;
+                        margin: 0 auto;
+                        padding: 20px;
+                        font-family: Arial, sans-serif;
+                    }
+                    table {
+                        width: 100%;
+                        border-collapse: collapse;
+                    }
+                    table, th, td {
+                        border: 1px solid black;
+                    }
+                    th, td {
+                        padding: 10px;
+                        text-align: left;
+                    }
+                </style>
+            </head>
+            <body>
+                <h1>AI Patterns</h1>
+                <table>
+                    <tr>
+                        <th>ID</th>
+                        <th>Description</th>
+                        <th>Reference</th>
+                    </tr>
+        `;
+        
+        patterns.forEach(pattern => {
+            htmlContent += `
+                <tr>
+                    <td>${pattern.id}</td>
+                    <td>${pattern.description}</td>
+                    <td>${pattern.reference}</td>
+                </tr>
+            `;
+        });
+        
+        htmlContent += `
+                </table>
+            </body>
+            </html>
+        `;
+
+        res.send(htmlContent);
     } catch (error) {
         console.error('Ошибка при получении паттернов:', error);
         res.status(500).send('Ошибка при получении паттернов');
