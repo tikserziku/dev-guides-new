@@ -1,5 +1,4 @@
-﻿require('dotenv').config();
-const express = require("express");
+﻿const express = require("express");
 const path = require("path");
 const fetch = require('node-fetch');
 const app = express();
@@ -10,7 +9,7 @@ app.use(express.static('public'));
 // Константы для API
 const CLAUDE_API = {
     URL: 'https://api.anthropic.com/v1/messages',
-    KEY: process.env.CLAUDE_API_KEY,
+    KEY: process.env.CLAUDE_API_KEY, // Берем напрямую из переменных Heroku
     VERSION: '2023-06-01'
 };
 
@@ -57,7 +56,7 @@ async function callClaudeAPI(prompt) {
     }
 }
 
-// Создаем шаблон проекта часов
+// Готовый шаблон часов
 const clockTemplate = {
     "index.html": `
         <!DOCTYPE html>
@@ -106,13 +105,17 @@ const clockTemplate = {
     `
 };
 
-// API endpoints
 app.post("/api/generate-structure", async (req, res) => {
     try {
         const { description } = req.body;
         console.log('Generating structure for:', description);
 
-        // Если это часы - используем готовый шаблон
+        // Проверяем наличие ключа API
+        if (!CLAUDE_API.KEY) {
+            throw new Error('CLAUDE_API_KEY is not configured');
+        }
+
+        // Для часов используем готовый шаблон
         if (description.toLowerCase().includes('час') || description.toLowerCase().includes('clock')) {
             res.json({
                 name: "digital-clock",
@@ -121,7 +124,7 @@ app.post("/api/generate-structure", async (req, res) => {
             return;
         }
 
-        // Иначе генерируем с помощью Claude
+        // Для других проектов используем Claude
         const prompt = `Create a web application structure for: ${description}.
         Return only a JSON object with this structure:
         {
@@ -146,7 +149,7 @@ app.post("/api/generate-structure", async (req, res) => {
     }
 });
 
-// Добавляем простой UI для тестирования
+// Простой UI для тестирования
 app.get('/', (req, res) => {
     res.send(`
         <!DOCTYPE html>
@@ -154,22 +157,83 @@ app.get('/', (req, res) => {
         <head>
             <title>Project Generator</title>
             <style>
-                body { max-width: 800px; margin: 40px auto; padding: 20px; font-family: Arial; }
-                textarea { width: 100%; height: 100px; margin: 10px 0; }
-                button { padding: 10px 20px; }
-                pre { background: #f5f5f5; padding: 20px; overflow-x: auto; }
+                body {
+                    max-width: 800px;
+                    margin: 40px auto;
+                    padding: 20px;
+                    font-family: Arial, sans-serif;
+                    background-color: #f0f0f0;
+                }
+                .container {
+                    background-color: white;
+                    padding: 20px;
+                    border-radius: 8px;
+                    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+                }
+                textarea {
+                    width: 100%;
+                    height: 100px;
+                    margin: 10px 0;
+                    padding: 10px;
+                    border: 1px solid #ddd;
+                    border-radius: 4px;
+                    font-size: 16px;
+                }
+                button {
+                    background-color: #4CAF50;
+                    color: white;
+                    padding: 10px 20px;
+                    border: none;
+                    border-radius: 4px;
+                    cursor: pointer;
+                    font-size: 16px;
+                }
+                button:hover {
+                    background-color: #45a049;
+                }
+                pre {
+                    background: #f8f9fa;
+                    padding: 20px;
+                    border-radius: 4px;
+                    overflow-x: auto;
+                    border: 1px solid #ddd;
+                }
+                #loading {
+                    display: none;
+                    color: #666;
+                    margin: 10px 0;
+                }
+                .error {
+                    color: #d32f2f;
+                    padding: 10px;
+                    background-color: #fde8e8;
+                    border-radius: 4px;
+                    margin: 10px 0;
+                }
             </style>
         </head>
         <body>
-            <h1>Project Generator</h1>
-            <textarea id="description" placeholder="Describe your project..."></textarea>
-            <br>
-            <button onclick="generate()">Generate Project</button>
-            <pre id="output"></pre>
+            <div class="container">
+                <h1>Project Generator</h1>
+                <textarea id="description" placeholder="Опишите ваш проект (например: 'цифровые часы' или 'калькулятор')..."></textarea>
+                <br>
+                <button onclick="generate()">Сгенерировать проект</button>
+                <div id="loading">Генерация...</div>
+                <div id="error" class="error" style="display: none;"></div>
+                <pre id="output"></pre>
+            </div>
 
             <script>
                 async function generate() {
                     const description = document.getElementById('description').value;
+                    const loading = document.getElementById('loading');
+                    const error = document.getElementById('error');
+                    const output = document.getElementById('output');
+
+                    loading.style.display = 'block';
+                    error.style.display = 'none';
+                    output.textContent = '';
+
                     try {
                         const response = await fetch('/api/generate-structure', {
                             method: 'POST',
@@ -177,11 +241,17 @@ app.get('/', (req, res) => {
                             body: JSON.stringify({ description })
                         });
                         const data = await response.json();
-                        document.getElementById('output').textContent = 
-                            JSON.stringify(data, null, 2);
-                    } catch (error) {
-                        document.getElementById('output').textContent = 
-                            'Error: ' + error.message;
+                        
+                        if (data.error) {
+                            throw new Error(data.error);
+                        }
+                        
+                        output.textContent = JSON.stringify(data, null, 2);
+                    } catch (err) {
+                        error.textContent = 'Ошибка: ' + err.message;
+                        error.style.display = 'block';
+                    } finally {
+                        loading.style.display = 'none';
                     }
                 }
             </script>
@@ -193,9 +263,5 @@ app.get('/', (req, res) => {
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);
-    console.log('API configuration:', {
-        url: CLAUDE_API.URL,
-        keyStatus: !!CLAUDE_API.KEY,
-        version: CLAUDE_API.VERSION
-    });
+    console.log('API Key status:', CLAUDE_API.KEY ? 'Present' : 'Missing');
 });
