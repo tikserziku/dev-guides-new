@@ -13,13 +13,14 @@ app.post("/api/generate-structure", async (req, res) => {
     try {
         const { description } = req.body;
         console.log("Generating structure for:", description);
+        console.log("Using API key:", CLAUDE_API_KEY); // Для отладки
 
         const response = await fetch('https://api.anthropic.com/v1/messages', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
                 'anthropic-version': '2023-06-01',
-                'Authorization': `Bearer ${CLAUDE_API_KEY}`
+                'x-api-key': CLAUDE_API_KEY
             },
             body: JSON.stringify({
                 model: "claude-3-opus-20240229",
@@ -41,14 +42,22 @@ app.post("/api/generate-structure", async (req, res) => {
         });
 
         console.log("API Response Status:", response.status);
-        const data = await response.json();
-        console.log("API Response:", data);
+        const responseText = await response.text();
+        console.log("Raw API Response:", responseText);
 
-        if (data.error) {
-            throw new Error(data.error.message);
+        try {
+            const data = JSON.parse(responseText);
+            console.log("Parsed API Response:", data);
+
+            if (data.error) {
+                throw new Error(data.error.message);
+            }
+
+            res.json(data);
+        } catch (parseError) {
+            console.error("Parse error:", parseError);
+            res.status(500).json({ error: 'Invalid response format', details: responseText });
         }
-
-        res.json(data);
     } catch (error) {
         console.error("Error:", error);
         res.status(500).json({ error: error.message });
@@ -65,7 +74,7 @@ app.post("/api/generate-code", async (req, res) => {
             headers: {
                 'Content-Type': 'application/json',
                 'anthropic-version': '2023-06-01',
-                'Authorization': `Bearer ${CLAUDE_API_KEY}`
+                'x-api-key': CLAUDE_API_KEY
             },
             body: JSON.stringify({
                 model: "claude-3-opus-20240229",
@@ -79,15 +88,22 @@ app.post("/api/generate-code", async (req, res) => {
             })
         });
 
-        console.log("API Response Status:", response.status);
-        const data = await response.json();
-        console.log("API Response:", data);
+        const responseText = await response.text();
+        console.log("Raw API Response:", responseText);
 
-        if (data.error) {
-            throw new Error(data.error.message);
+        try {
+            const data = JSON.parse(responseText);
+            console.log("Parsed API Response:", data);
+
+            if (data.error) {
+                throw new Error(data.error.message);
+            }
+
+            res.json(data);
+        } catch (parseError) {
+            console.error("Parse error:", parseError);
+            res.status(500).json({ error: 'Invalid response format', details: responseText });
         }
-
-        res.json(data);
     } catch (error) {
         console.error("Error:", error);
         res.status(500).json({ error: error.message });
@@ -102,4 +118,5 @@ const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);
     console.log('API Key status:', CLAUDE_API_KEY ? 'Present' : 'Missing');
+    console.log('API Key first 10 chars:', CLAUDE_API_KEY ? CLAUDE_API_KEY.substring(0, 10) : 'Not available');
 });
