@@ -9,6 +9,18 @@ app.use(express.static('public'));
 // Функция для работы с Claude API
 async function callClaudeAPI(prompt) {
     try {
+        const requestBody = {
+            model: "claude-3-opus-20240229",
+            messages: [{
+                role: "user",
+                content: prompt
+            }],
+            max_tokens: 4000,  // Изменено с max_tokens_to_sample на max_tokens
+            temperature: 0.7
+        };
+
+        console.log('Sending request to API:', requestBody);
+
         const response = await fetch('https://api.anthropic.com/v1/messages', {
             method: 'POST',
             headers: {
@@ -16,26 +28,22 @@ async function callClaudeAPI(prompt) {
                 'anthropic-version': '2023-06-01',
                 'x-api-key': process.env.CLAUDE_API_KEY
             },
-            body: JSON.stringify({
-                model: "claude-3-opus-20240229",
-                messages: [{ 
-                    role: "user", 
-                    content: `You are a code generator assistant. Follow these rules:
-                    1. Generate complete, production-ready code
-                    2. Include error handling and best practices
-                    3. Add comments for complex parts
-                    4. Follow modern coding standards
-                    5. Ensure code is secure and maintainable
-                    
-                    Generate for this request: ${prompt}`
-                }],
-                max_tokens_to_sample: 4000,
-                temperature: 0.7
-            })
+            body: JSON.stringify(requestBody)
         });
 
+        if (!response.ok) {
+            const errorData = await response.text();
+            console.error('API Response Error:', errorData);
+            throw new Error(`API Error: ${errorData}`);
+        }
+
         const data = await response.json();
-        if (data.error) throw new Error(data.error.message);
+        console.log('API Response:', data);
+
+        if (data.error) {
+            throw new Error(data.error.message);
+        }
+
         return data.content[0].text;
     } catch (error) {
         console.error('API Error:', error);
@@ -43,42 +51,31 @@ async function callClaudeAPI(prompt) {
     }
 }
 
+// API для генерации структуры проекта
 app.post("/api/generate-structure", async (req, res) => {
     try {
         const { description } = req.body;
         console.log('Generating structure for:', description);
 
         const prompt = `Create a project structure for this description: ${description}
-        Return a JSON object with this structure:
+        Return ONLY a JSON object with this structure:
         {
             "name": "project-name",
-            "type": "project-type",
-            "structure": {
-                "directories": [
-                    {
-                        "name": "directory-name",
-                        "purpose": "directory-purpose",
-                        "files": [
-                            {
-                                "name": "file-name",
-                                "purpose": "file-purpose",
-                                "technologies": ["tech1", "tech2"]
-                            }
-                        ]
-                    }
-                ],
-                "dependencies": {
-                    "required": ["dep1", "dep2"],
-                    "optional": ["dep3", "dep4"]
-                },
-                "setup": {
-                    "steps": ["step1", "step2"],
-                    "configuration": {}
+            "type": "type of project",
+            "files": {
+                "file-path": {
+                    "content": "file content here",
+                    "description": "file purpose",
+                    "technologies": ["tech1", "tech2"]
                 }
+            },
+            "dependencies": {
+                "required": ["dep1", "dep2"]
             }
         }`;
 
         const result = await callClaudeAPI(prompt);
+        console.log('Generated structure:', result);
         res.json(JSON.parse(result));
     } catch (error) {
         console.error('Structure generation error:', error);
@@ -86,29 +83,18 @@ app.post("/api/generate-structure", async (req, res) => {
     }
 });
 
+// API для генерации кода
 app.post("/api/generate-code", async (req, res) => {
     try {
         const { description, structure } = req.body;
         console.log('Generating code for:', description);
 
-        const prompt = `Generate complete code for all files in this project.
-        Project description: ${description}
+        const prompt = `Generate code for this project description: ${description}
         Project structure: ${JSON.stringify(structure)}
-        
-        Return a JSON object where:
-        - Keys are file paths
-        - Values are complete file contents
-        
-        Include:
-        1. All necessary imports and dependencies
-        2. Complete implementation with error handling
-        3. Tests where appropriate
-        4. Documentation and comments
-        5. Configuration files
-        
-        Return only the JSON object with the code.`;
+        Return ONLY a JSON object where keys are file paths and values are complete file contents.`;
 
         const result = await callClaudeAPI(prompt);
+        console.log('Generated code:', result);
         res.json(JSON.parse(result));
     } catch (error) {
         console.error('Code generation error:', error);
@@ -116,7 +102,7 @@ app.post("/api/generate-code", async (req, res) => {
     }
 });
 
-// Главная страница с улучшенным UI
+// Главная страница
 app.get('/', (req, res) => {
     res.send(`<!DOCTYPE html>
 <html>
@@ -154,31 +140,19 @@ app.get('/', (req, res) => {
             cursor: pointer;
             font-size: 16px;
         }
-        button:hover {
-            background: #45a049;
-        }
-        .output-container {
-            margin-top: 20px;
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 20px;
-        }
         .output-section {
+            margin-top: 20px;
             background: #f8f9fa;
             padding: 15px;
             border-radius: 4px;
             border: 1px solid #ddd;
         }
-        .file-header {
-            background: #e9ecef;
-            padding: 8px;
-            margin: -15px -15px 15px;
-            border-radius: 4px 4px 0 0;
-            font-weight: bold;
-        }
         pre {
             white-space: pre-wrap;
             word-wrap: break-word;
+            background: #fff;
+            padding: 10px;
+            border-radius: 4px;
         }
         #error {
             color: red;
@@ -198,23 +172,11 @@ app.get('/', (req, res) => {
 <body>
     <div class="container">
         <h1>AI Project Generator</h1>
-        <div>
-            <label for="description">Опишите ваш проект подробно:</label>
-            <textarea id="description" placeholder="Например: Веб-приложение для управления задачами с аутентификацией, базой данных MongoDB и REST API..."></textarea>
-        </div>
+        <textarea id="description" placeholder="Опишите ваш проект..."></textarea>
         <button onclick="generate()">Сгенерировать проект</button>
         <div id="loading">Генерация проекта...</div>
         <div id="error"></div>
-        <div class="output-container">
-            <div class="output-section">
-                <div class="file-header">Структура проекта</div>
-                <pre id="structure"></pre>
-            </div>
-            <div class="output-section">
-                <div class="file-header">Код проекта</div>
-                <pre id="code"></pre>
-            </div>
-        </div>
+        <div id="output" class="output-section"></div>
     </div>
 
     <script>
@@ -222,13 +184,11 @@ app.get('/', (req, res) => {
         const description = document.getElementById('description').value;
         const loading = document.getElementById('loading');
         const error = document.getElementById('error');
-        const structure = document.getElementById('structure');
-        const code = document.getElementById('code');
+        const output = document.getElementById('output');
 
         loading.style.display = 'block';
         error.style.display = 'none';
-        structure.textContent = '';
-        code.textContent = '';
+        output.innerHTML = '';
 
         try {
             // Генерация структуры
@@ -240,23 +200,22 @@ app.get('/', (req, res) => {
 
             const structureData = await structureResponse.json();
             if (structureData.error) throw new Error(structureData.error);
-            
-            structure.textContent = JSON.stringify(structureData, null, 2);
+
+            output.innerHTML = '<h3>Project Structure:</h3>';
+            output.innerHTML += '<pre>' + JSON.stringify(structureData, null, 2) + '</pre>';
 
             // Генерация кода
             const codeResponse = await fetch('/api/generate-code', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ 
-                    description, 
-                    structure: structureData 
-                })
+                body: JSON.stringify({ description, structure: structureData })
             });
 
             const codeData = await codeResponse.json();
             if (codeData.error) throw new Error(codeData.error);
-            
-            code.textContent = JSON.stringify(codeData, null, 2);
+
+            output.innerHTML += '<h3>Generated Code:</h3>';
+            output.innerHTML += '<pre>' + JSON.stringify(codeData, null, 2) + '</pre>';
         } catch (err) {
             error.textContent = 'Ошибка: ' + err.message;
             error.style.display = 'block';
