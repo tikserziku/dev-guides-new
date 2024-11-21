@@ -200,9 +200,12 @@ app.get('/generator', (req, res) => {
                     <label for="description">Project Description:</label><br>
                     <textarea id="description" name="description"></textarea><br><br>
                     <button type="button" onclick="generateProject()">Generate Project</button>
+                    <button type="button" onclick="generateCode()">Generate Code</button>
                 </form>
                 <h2>Generated Project Structure</h2>
                 <pre id="output"></pre>
+                <h2>Generated Code</h2>
+                <pre id="codeOutput"></pre>
                 <script>
                     async function generateProject() {
                         const description = document.getElementById('description').value;
@@ -215,6 +218,19 @@ app.get('/generator', (req, res) => {
                         });
                         const data = await response.json();
                         document.getElementById('output').textContent = JSON.stringify(data, null, 2);
+                    }
+
+                    async function generateCode() {
+                        const structure = JSON.parse(document.getElementById('output').textContent);
+                        const response = await fetch('/api/generate-code', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify({ structure })
+                        });
+                        const data = await response.json();
+                        document.getElementById('codeOutput').textContent = JSON.stringify(data, null, 2);
                     }
                 </script>
             </body>
