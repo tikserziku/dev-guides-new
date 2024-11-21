@@ -5,80 +5,223 @@
     <style>
         body {
             font-family: Arial, sans-serif;
-            max-width: 800px;
+            max-width: 1200px;
             margin: 0 auto;
             padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
         }
         textarea {
             width: 100%;
             min-height: 200px;
             margin: 10px 0;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 16px;
         }
         button {
             padding: 10px 20px;
             margin: 5px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        button:disabled {
+            background-color: #ccc;
+            cursor: not-allowed;
+        }
+        .loading {
+            display: none;
+            margin: 10px 0;
+            color: #666;
         }
         pre {
-            background: #f5f5f5;
+            background: #f8f9fa;
             padding: 15px;
-            border-radius: 5px;
+            border-radius: 4px;
             white-space: pre-wrap;
+            overflow-x: auto;
+            font-size: 14px;
+            border: 1px solid #ddd;
+        }
+        .error {
+            color: red;
+            padding: 10px;
+            background-color: #fff3f3;
+            border: 1px solid #ffd7d7;
+            border-radius: 4px;
+            margin: 10px 0;
+        }
+        .success {
+            color: green;
+            padding: 10px;
+            background-color: #f3fff3;
+            border: 1px solid #d7ffd7;
+            border-radius: 4px;
+            margin: 10px 0;
+        }
+        .file-box {
+            border: 1px solid #ddd;
+            margin: 10px 0;
+            border-radius: 4px;
+        }
+        .file-header {
+            background: #f0f0f0;
+            padding: 10px;
+            font-weight: bold;
+        }
+        .file-content {
+            padding: 10px;
         }
     </style>
 </head>
 <body>
-    <h1>AI Project Generator</h1>
-    <div>
-        <label>Project Description:</label>
-        <textarea id="description" placeholder="Describe your project..."></textarea>
+    <div class="container">
+        <h1>AI Project Generator</h1>
+        <div>
+            <label>Project Description:</label>
+            <textarea id="description" placeholder="Опишите ваш проект подробно. Например: Создать веб-приложение часов с современным дизайном, которое показывает текущее время в формате ЧЧ:ММ:СС и обновляется каждую секунду..."></textarea>
+        </div>
+        <div>
+            <button onclick="generateStructure()" id="structureBtn">Generate Structure</button>
+            <button onclick="generateCode()" id="codeBtn" style="display: none;">Generate Code</button>
+            <div id="loading" class="loading">Generating...</div>
+        </div>
+        <div id="error" class="error" style="display: none;"></div>
+        <div id="structure" style="display: none;">
+            <h2>Project Structure:</h2>
+            <pre id="structureOutput"></pre>
+        </div>
+        <div id="code" style="display: none;">
+            <h2>Generated Code:</h2>
+            <div id="codeOutput"></div>
+        </div>
     </div>
-    <div>
-        <button onclick="generateStructure()">Generate Structure</button>
-        <button onclick="generateCode()" id="codeBtn" style="display: none;">Generate Code</button>
-    </div>
-    <div id="output"></div>
 
     <script>
+        let currentStructure = null;
+
         async function generateStructure() {
             try {
                 const description = document.getElementById('description').value;
+                if (!description) {
+                    showError('Please enter a project description');
+                    return;
+                }
+
+                showLoading(true);
+                disableButtons(true);
+
                 const response = await fetch('/api/generate-structure', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ description })
                 });
+
                 const data = await response.json();
                 
-                const output = document.getElementById('output');
-                output.innerHTML = `<h3>Project Structure:</h3><pre>${JSON.stringify(data, null, 2)}</pre>`;
-                
+                if (data.error) {
+                    throw new Error(data.error);
+                }
+
+                currentStructure = data;
+                document.getElementById('structureOutput').textContent = JSON.stringify(data, null, 2);
+                document.getElementById('structure').style.display = 'block';
                 document.getElementById('codeBtn').style.display = 'inline';
-                window.currentStructure = data;
+                
+                showLoading(false);
+                disableButtons(false);
             } catch (error) {
                 console.error('Error:', error);
-                alert('Error generating structure');
+                showError(error.message);
+                showLoading(false);
+                disableButtons(false);
             }
         }
 
         async function generateCode() {
             try {
+                if (!currentStructure) {
+                    showError('Please generate structure first');
+                    return;
+                }
+
+                showLoading(true);
+                disableButtons(true);
+
                 const description = document.getElementById('description').value;
                 const response = await fetch('/api/generate-code', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ 
-                        structure: window.currentStructure,
+                        structure: currentStructure,
                         description 
                     })
                 });
+
                 const data = await response.json();
                 
-                const output = document.getElementById('output');
-                output.innerHTML += `<h3>Generated Code:</h3><pre>${JSON.stringify(data, null, 2)}</pre>`;
+                if (data.error) {
+                    throw new Error(data.error);
+                }
+
+                const codeOutput = document.getElementById('codeOutput');
+                codeOutput.innerHTML = '';
+                
+                // Display each file in a separate box
+                Object.entries(data).forEach(([path, content]) => {
+                    const fileBox = document.createElement('div');
+                    fileBox.className = 'file-box';
+                    
+                    const header = document.createElement('div');
+                    header.className = 'file-header';
+                    header.textContent = path;
+                    
+                    const pre = document.createElement('pre');
+                    pre.className = 'file-content';
+                    pre.textContent = content;
+                    
+                    fileBox.appendChild(header);
+                    fileBox.appendChild(pre);
+                    codeOutput.appendChild(fileBox);
+                });
+
+                document.getElementById('code').style.display = 'block';
+                showLoading(false);
+                disableButtons(false);
             } catch (error) {
                 console.error('Error:', error);
-                alert('Error generating code');
+                showError(error.message);
+                showLoading(false);
+                disableButtons(false);
             }
+        }
+
+        function showLoading(show) {
+            document.getElementById('loading').style.display = show ? 'block' : 'none';
+        }
+
+        function disableButtons(disable) {
+            document.getElementById('structureBtn').disabled = disable;
+            document.getElementById('codeBtn').disabled = disable;
+        }
+
+        function showError(message) {
+            const error = document.getElementById('error');
+            error.textContent = message;
+            error.style.display = 'block';
+            setTimeout(() => {
+                error.style.display = 'none';
+            }, 5000);
         }
     </script>
 </body>
