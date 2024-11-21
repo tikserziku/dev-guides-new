@@ -1,7 +1,0 @@
-﻿<?xml version="1.0" encoding="UTF-8"?>
-<patterns>
-    <pattern id="file_manipulation">
-        <description>Паттерн для работы с файлами в PowerShell</description>
-        <code>Section 2.1 in guide</code>
-    </pattern>
-</patterns>

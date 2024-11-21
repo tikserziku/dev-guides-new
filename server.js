@@ -2,9 +2,6 @@
 const express = require("express");
 const markdown = require("markdown-it");
 const fs = require("fs");
-const path = require("path");
-const xsltProcessor = require('xslt-processor');
-const xml2js = require('xml2js');
 const ClaudeService = require("./services/claude");
 
 const app = express();
@@ -74,35 +71,27 @@ app.get("/", (req, res) => {
     `);
 });
 
-// Маршрут для отображения паттернов с использованием XSLT
+// Новый маршрут для отображения паттернов в формате JSON
 app.get('/patterns', (req, res) => {
     try {
-        // Чтение XML и XSL файлов
-        const xmlFilePath = path.join(__dirname, 'patterns', 'ai_patterns.xml');
-        const xslFilePath = path.join(__dirname, 'patterns', 'patterns.xsl');
-
-        const xml = fs.readFileSync(xmlFilePath, 'utf-8');
-        const xsl = fs.readFileSync(xslFilePath, 'utf-8');
-
-        // Преобразование XML с использованием XSLT с помощью xml2js и xsltProcessor
-        xml2js.parseString(xml, (err, xmlDoc) => {
-            if (err) {
-                throw new Error('Ошибка при парсинге XML: ' + err.message);
+        // Здесь можно хранить паттерны как объект в формате JSON
+        const patterns = [
+            {
+                id: "file_manipulation",
+                description: "Паттерн для работы с файлами в PowerShell",
+                reference: "Section 2.1 in guide"
+            },
+            {
+                id: "api_interaction",
+                description: "Паттерн для взаимодействия с API через PowerShell",
+                reference: "Section 3.4 in guide"
             }
-            const xslDoc = xsltProcessor.xmlParse(xsl);
-            const result = xsltProcessor.xsltProcess(xmlDoc, xslDoc);
-
-            // Запись результата в локальный файл перед отправкой
-            const resultFilePath = path.join(__dirname, 'patterns', 'result.html');
-            fs.writeFileSync(resultFilePath, result);
-
-            // Отправка результата
-            res.set('Content-Type', 'text/html');
-            res.sendFile(resultFilePath);
-        });
+        ];
+        
+        res.json(patterns);
     } catch (error) {
-        console.error('Ошибка при обработке XML и XSL:', error);
-        res.status(500).send('Ошибка при обработке паттернов');
+        console.error('Ошибка при получении паттернов:', error);
+        res.status(500).send('Ошибка при получении паттернов');
     }
 });
 
