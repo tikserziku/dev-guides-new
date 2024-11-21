@@ -1,0 +1,85 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <title>AI Project Generator</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        textarea {
+            width: 100%;
+            min-height: 200px;
+            margin: 10px 0;
+        }
+        button {
+            padding: 10px 20px;
+            margin: 5px;
+        }
+        pre {
+            background: #f5f5f5;
+            padding: 15px;
+            border-radius: 5px;
+            white-space: pre-wrap;
+        }
+    </style>
+</head>
+<body>
+    <h1>AI Project Generator</h1>
+    <div>
+        <label>Project Description:</label>
+        <textarea id="description" placeholder="Describe your project..."></textarea>
+    </div>
+    <div>
+        <button onclick="generateStructure()">Generate Structure</button>
+        <button onclick="generateCode()" id="codeBtn" style="display: none;">Generate Code</button>
+    </div>
+    <div id="output"></div>
+
+    <script>
+        async function generateStructure() {
+            try {
+                const description = document.getElementById('description').value;
+                const response = await fetch('/api/generate-structure', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ description })
+                });
+                const data = await response.json();
+                
+                const output = document.getElementById('output');
+                output.innerHTML = `<h3>Project Structure:</h3><pre>${JSON.stringify(data, null, 2)}</pre>`;
+                
+                document.getElementById('codeBtn').style.display = 'inline';
+                window.currentStructure = data;
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Error generating structure');
+            }
+        }
+
+        async function generateCode() {
+            try {
+                const description = document.getElementById('description').value;
+                const response = await fetch('/api/generate-code', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ 
+                        structure: window.currentStructure,
+                        description 
+                    })
+                });
+                const data = await response.json();
+                
+                const output = document.getElementById('output');
+                output.innerHTML += `<h3>Generated Code:</h3><pre>${JSON.stringify(data, null, 2)}</pre>`;
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Error generating code');
+            }
+        }
+    </script>
+</body>
+</html>
