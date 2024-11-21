@@ -24,6 +24,23 @@ app.post("/api/generate-structure", async (req, res) => {
     }
 });
 
+// Новый API для подтверждения структуры пользователем
+app.post("/api/confirm-structure", async (req, res) => {
+    try {
+        const { structure, feedback } = req.body;
+        if (feedback && feedback.length > 0) {
+            // Обработка обратной связи
+            const updatedStructure = await claude.updateProjectStructure(structure, feedback);
+            res.json({ updatedStructure, message: 'Structure updated based on feedback' });
+        } else {
+            res.json({ message: 'Structure confirmed' });
+        }
+    } catch (error) {
+        console.error('Error confirming structure:', error);
+        res.status(500).json({ error: 'Failed to confirm structure' });
+    }
+});
+
 // API для генерации кода
 app.post("/api/generate-code", async (req, res) => {
     try {
@@ -74,6 +91,7 @@ app.get("/", (req, res) => {
 // Новый маршрут для отображения паттернов в формате HTML
 app.get('/patterns', (req, res) => {
     try {
+        // Здесь можно хранить паттерны как объект в формате JSON
         const patterns = [
             {
                 id: "file_manipulation",
@@ -145,10 +163,10 @@ app.get('/patterns', (req, res) => {
     }
 });
 
-// Новый маршрут для отображения страницы генератора проектов
+// Новый маршрут для генератора проекта
 app.get('/generator', (req, res) => {
     try {
-        const generatorHtml = `
+        let htmlContent = `
             <!DOCTYPE html>
             <html>
             <head>
@@ -160,36 +178,31 @@ app.get('/generator', (req, res) => {
                         padding: 20px;
                         font-family: Arial, sans-serif;
                     }
-                    label {
-                        display: block;
-                        margin: 15px 0 5px;
-                    }
-                    input, textarea {
+                    textarea {
                         width: 100%;
-                        padding: 10px;
-                        margin-bottom: 15px;
-                        border-radius: 4px;
-                        border: 1px solid #ccc;
+                        height: 100px;
                     }
                     button {
-                        padding: 10px 20px;
-                        background-color: #28a745;
-                        color: white;
-                        border: none;
-                        border-radius: 4px;
-                        cursor: pointer;
+                        padding: 10px;
+                        font-size: 16px;
+                    }
+                    pre {
+                        background-color: #f5f5f5;
+                        padding: 10px;
+                        border-radius: 5px;
+                        overflow: auto;
                     }
                 </style>
             </head>
             <body>
                 <h1>Project Generator</h1>
-                <form id="generator-form">
-                    <label for="description">Project Description:</label>
-                    <textarea id="description" rows="4" placeholder="Enter project description..."></textarea>
+                <form id="generateForm">
+                    <label for="description">Project Description:</label><br>
+                    <textarea id="description" name="description"></textarea><br><br>
                     <button type="button" onclick="generateProject()">Generate Project</button>
                 </form>
+                <h2>Generated Project Structure</h2>
                 <pre id="output"></pre>
-                
                 <script>
                     async function generateProject() {
                         const description = document.getElementById('description').value;
@@ -200,18 +213,18 @@ app.get('/generator', (req, res) => {
                             },
                             body: JSON.stringify({ description })
                         });
-                        const structure = await response.json();
-                        document.getElementById('output').innerText = JSON.stringify(structure, null, 2);
+                        const data = await response.json();
+                        document.getElementById('output').textContent = JSON.stringify(data, null, 2);
                     }
                 </script>
             </body>
             </html>
         `;
 
-        res.send(generatorHtml);
+        res.send(htmlContent);
     } catch (error) {
-        console.error('Ошибка при отображении генератора:', error);
-        res.status(500).send('Ошибка при отображении генератора');
+        console.error('Ошибка при открытии генератора проекта:', error);
+        res.status(500).send('Ошибка при открытии генератора проекта');
     }
 });
 
