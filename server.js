@@ -2,9 +2,11 @@
 const path = require("path");
 const fs = require("fs");
 const marked = require("marked");
-const fetch = require('node-fetch');
+const fetch = require("node-fetch");
 
 const app = express();
+app.use(express.json());
+app.use(express.static("public"));
 app.use(express.json());
 app.use(express.static('public'));
 
