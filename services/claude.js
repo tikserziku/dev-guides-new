@@ -1,30 +1,53 @@
-class ClaudeService {
+﻿class ClaudeService {
     constructor(apiKey) {
         this.apiKey = apiKey;
         this.apiUrl = 'https://api.anthropic.com/v1/messages';
     }
 
     async generateStructure(description) {
-        const prompt = `As an expert software architect, analyze this project description and create a detailed project structure. 
-        Project description: "${description}"
-        
-        Please provide:
-        1. A complete directory and file structure
-        2. Brief description of each file's purpose
-        3. List of required dependencies
-        4. Architecture overview`;
+        console.log(`Analyzing project: ${description}`);
+        try {
+            const prompt = `Create a detailed project structure for this description: "${description}".
+            The project should be well-organized and include all necessary files and folders.
+            Return ONLY a JSON object with this structure:
+            {
+                "name": "project-name",
+                "folders": [
+                    {
+                        "name": "folder-name",
+                        "description": "folder purpose",
+                        "files": [
+                            {
+                                "name": "filename.ext",
+                                "description": "file purpose"
+                            }
+                        ]
+                    }
+                ]
+            }`;
 
-        const response = await this.makeRequest(prompt);
-        return JSON.parse(response);
+            const response = await this.makeRequest(prompt);
+            return JSON.parse(response);
+        } catch (error) {
+            console.error('Structure generation error:', error);
+            throw error;
+        }
     }
 
     async generateCode(structure, description) {
-        const prompt = `As an expert developer, generate complete code for all files in this project structure.
-        Project description: "${description}"
-        Project structure: ${JSON.stringify(structure)}`;
+        console.log(`Generating code for: ${description}`);
+        try {
+            const prompt = `Generate complete code for all files in this project: "${description}".
+            Project structure: ${JSON.stringify(structure)}
+            Return ONLY a JSON object where keys are file paths and values are complete file contents.
+            Make the code fully functional and production-ready.`;
 
-        const response = await this.makeRequest(prompt);
-        return JSON.parse(response);
+            const response = await this.makeRequest(prompt);
+            return JSON.parse(response);
+        } catch (error) {
+            console.error('Code generation error:', error);
+            throw error;
+        }
     }
 
     async makeRequest(prompt) {
@@ -42,7 +65,8 @@ class ClaudeService {
                     messages: [{
                         role: 'user',
                         content: prompt
-                    }]
+                    }],
+                    temperature: 0.5
                 })
             });
 
@@ -51,6 +75,7 @@ class ClaudeService {
             }
 
             const data = await response.json();
+            console.log('Claude response:', data);
             return data.content[0].text;
         } catch (error) {
             console.error('Claude API error:', error);
