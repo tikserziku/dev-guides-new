@@ -102,6 +102,95 @@ app.post("/api/generate-code", async (req, res) => {
     }
 });
 
+// Маршрут для README.md
+app.get('/readme1', (req, res) => {
+    const readmePath = path.join(__dirname, 'README.md');
+    fs.readFile(readmePath, 'utf8', (err, data) => {
+        if (err) {
+            res.status(500).send('Error loading README');
+            return;
+        }
+        const markdownHtml = marked.parse(data, { 
+            gfm: true,
+            breaks: true,
+            sanitize: true
+        });
+        res.send(`
+            <!DOCTYPE html>
+            <html>
+            <head>
+                <title>Project Documentation</title>
+                <link href="https://cdnjs.cloudflare.com/ajax/libs/github-markdown-css/5.2.0/github-markdown.min.css" rel="stylesheet">
+                <style>
+                    .markdown-body {
+                        box-sizing: border-box;
+                        min-width: 200px;
+                        max-width: 980px;
+                        margin: 0 auto;
+                        padding: 45px;
+                        background: white;
+                    }
+                    body { background: #f5f5f5; padding: 20px; }
+                    .nav { text-align: center; margin-bottom: 20px; }
+                </style>
+            </head>
+            <body>
+                <div class="nav">
+                    <a href="/">Home</a> |
+                    <a href="/readme1">README 1</a> |
+                    <a href="/readme2">README 2</a>
+                </div>
+                <div class="markdown-body">${markdownHtml}</div>
+            </body>
+            </html>
+        `);
+    });
+ });
+ 
+ app.get('/readme2', (req, res) => {
+    const readmePath = path.join(__dirname, 'README2.md');
+    fs.readFile(readmePath, 'utf8', (err, data) => {
+        if (err) {
+            res.status(500).send('Error loading README2');
+            return;
+        }
+        const markdownHtml = marked.parse(data, { 
+            gfm: true,
+            breaks: true,
+            sanitize: true
+        });
+        res.send(`
+            <!DOCTYPE html>
+            <html>
+            <head>
+                <title>Additional Documentation</title>
+                <link href="https://cdnjs.cloudflare.com/ajax/libs/github-markdown-css/5.2.0/github-markdown.min.css" rel="stylesheet">
+                <style>
+                    .markdown-body {
+                        box-sizing: border-box;
+                        min-width: 200px;
+                        max-width: 980px;
+                        margin: 0 auto;
+                        padding: 45px;
+                        background: white;
+                    }
+                    body { background: #f5f5f5; padding: 20px; }
+                    .nav { text-align: center; margin-bottom: 20px; }
+                </style>
+            </head>
+            <body>
+                <div class="nav">
+                    <a href="/">Home</a> |
+                    <a href="/readme1">README 1</a> |
+                    <a href="/readme2">README 2</a>
+                </div>
+                <div class="markdown-body">${markdownHtml}</div>
+            </body>
+            </html>
+        `);
+    });
+ });
+
 // Главная страница
 app.get('/', (req, res) => {
     res.send(`<!DOCTYPE html>
