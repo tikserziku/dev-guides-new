@@ -1,3 +1,62 @@
+// Общие стили для всех страниц
+const commonStyles = `
+    body {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 20px;
+        font-family: 'Segoe UI', Arial, sans-serif;
+        background: #f5f5f5;
+        line-height: 1.6;
+    }
+    .container {
+        background: white;
+        padding: 30px;
+        border-radius: 12px;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    }
+    .top-navigation {
+        text-align: center;
+        margin-bottom: 30px;
+        padding: 15px;
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        position: sticky;
+        top: 20px;
+        z-index: 100;
+    }
+    .top-navigation a {
+        margin: 0 20px;
+        color: #0366d6;
+        text-decoration: none;
+        padding: 8px 16px;
+        border-radius: 6px;
+        transition: all 0.3s ease;
+        font-weight: 500;
+    }
+    .top-navigation a:hover {
+        background-color: #0366d6;
+        color: white;
+        transform: translateY(-1px);
+    }
+    .top-navigation a:active {
+        transform: translateY(1px);
+    }
+    .markdown-body {
+        max-width: 800px;
+        margin: 0 auto;
+        padding: 20px;
+        background: white;
+    }
+    h1 {
+        color: #2c3e50;
+        font-size: 2.2em;
+        margin-bottom: 30px;
+        text-align: center;
+    }
+`;
+
+// Функция создания шаблона страницы
 const createPageTemplate = (title, content, additionalStyles = '') => `
 <!DOCTYPE html>
 <html>
@@ -26,4 +85,4 @@ const createPageTemplate = (title, content, additionalStyles = '') => `
 </html>
 `;
 
-module.exports = createPageTemplate;
+module.exports = { createPageTemplate, commonStyles };
