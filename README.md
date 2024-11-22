@@ -1,4 +1,6 @@
-﻿# AI Code Generator and Deployment Platform
+﻿$readmePath = "G:\dev-guides-new\README.md"
+$newContent = @"
+# AI Code Generator and Deployment Platform
 
 ## Project Overview
 This project consists of two main components:
@@ -96,26 +98,71 @@ The project includes three documentation sections:
 
 ## Development Workflow
 
-### Creating New Features
-1. Create a feature branch:
-```bash
-git checkout -b feature/new-feature
-```
+### Настроенные репозитории:
 
-2. Make changes and commit:
-```bash
-git add .
-git commit -m "Description of changes"
-```
+1. `origin` - основной репозиторий на GitHub
+   ```
+   https://github.com/tikserziku/dev-guides-new.git
+   ```
 
-3. Push to GitHub:
-```bash
-git push origin feature/new-feature
-```
+2. `heroku` - production окружение на Heroku
+   ```
+   https://git.heroku.com/dev-guides-new.git
+   ```
 
-4. Deploy to Heroku:
+3. `heroku-dev` - development окружение на Heroku
+   ```
+   https://git.heroku.com/dev-guides-new-dev.git
+   ```
+
+### Процесс разработки
+
+1. Создание новой функции:
+   ```bash
+   # Создаем новую ветку для функции
+   git checkout -b feature/new-feature
+
+   # Разрабатываем функционал и коммитим изменения
+   git add .
+   git commit -m "Add new feature"
+   ```
+
+2. Тестирование на dev-окружении:
+   ```bash
+   # Отправляем изменения в dev-окружение
+   git push heroku-dev feature/new-feature:main
+   ```
+
+3. После успешного тестирования:
+   ```bash
+   # Переключаемся на основную ветку
+   git checkout main
+
+   # Сливаем изменения из feature-ветки
+   git merge feature/new-feature
+
+   # Отправляем в GitHub
+   git push origin main
+   ```
+
+4. Деплой в production:
+   ```bash
+   # Отправляем в production
+   git push heroku main
+   ```
+
+### Полезные команды
+
+Проверка статуса репозиториев:
 ```bash
-git push heroku main
+# Посмотреть список удаленных репозиториев
+git remote -v
+
+# Проверить текущий статус
+git status
+
+# Посмотреть список веток
+git branch -a
 ```
 
 ## API Endpoints
@@ -141,6 +188,12 @@ Content-Type: application/json
 }
 ```
 
+### URLs
+
+- Development: https://dev-guides-new-dev-9ff58ea91415.herokuapp.com/
+- Production: https://dev-guides-new.herokuapp.com/
+- GitHub: https://github.com/tikserziku/dev-guides-new
+
 ## Contributing
 1. Fork the repository
 2. Create your feature branch
@@ -150,3 +203,13 @@ Content-Type: application/json
 
 ## License
 This project is licensed under the MIT License.
+"@
+
+# Сохраняем содержимое в файл
+$newContent | Out-File -FilePath $readmePath -Encoding UTF8
+
+Write-Host "README.md успешно обновлен!" -ForegroundColor Green
+Write-Host "Теперь нужно закоммитить изменения:" -ForegroundColor Yellow
+Write-Host "git add README.md" -ForegroundColor Cyan
+Write-Host "git commit -m 'Update README with full documentation'" -ForegroundColor Cyan
+Write-Host "git push origin main" -ForegroundColor Cyan
