@@ -123,19 +123,80 @@ Return ONLY a JSON object with this structure:
 
 app.post("/api/generate-code", async (req, res) => {
     try {
+        const { description, structure } = req.body;
+        console.log('Generating code for:', description);
+
+        const prompt = `Generate code for this project description: ${description}
+Project structure: ${JSON.stringify(structure)}
+Return ONLY a JSON object where keys are file paths and values are complete file contents.`;
+
         const timeoutPromise = new Promise((_, reject) => 
             setTimeout(() => reject(new Error('Request timeout')), 25000)
         );
-        const resultPromise = callClaudeAPI(prompt);
         
-        const result = await Promise.race([timeoutPromise, resultPromise]);
-        res.json(JSON.parse(result));
+        try {
+            const result = await Promise.race([
+                callClaudeAPI(prompt),
+                timeoutPromise
+            ]);
+            res.json(JSON.parse(result));
+        } catch (timeoutError) {
+            console.error('Request timeout:', timeoutError);
+            res.status(503).json({ error: 'Request timed out. Please try again.' });
+            return;
+        }
     } catch (error) {
         console.error('Code generation error:', error);
-        res.status(error.message === 'Request timeout' ? 503 : 500)
-           .json({ error: error.message });
+        res.status(500).json({ error: error.message });
     }
 });
+
+async function callClaudeAPI(prompt) {
+    try {
+        const requestBody = {
+            model: config.api.model,
+            messages: [{
+                role: "user",
+                content: prompt
+            }],
+            max_tokens: config.api.maxTokens,
+            temperature: config.api.temperature
+        };
+
+        console.log('API Request:', requestBody);
+
+        const controller = new AbortController();
+        const timeout = setTimeout(() => controller.abort(), 20000);
+
+        const response = await fetch(config.api.url, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'anthropic-version': config.api.version,
+                'x-api-key': process.env.CLAUDE_API_KEY
+            },
+            body: JSON.stringify(requestBody),
+            signal: controller.signal
+        });
+
+        clearTimeout(timeout);
+
+        if (!response.ok) {
+            const errorData = await response.text();
+            console.error('API Error Response:', errorData);
+            throw new Error(`API Error: ${errorData}`);
+        }
+
+        const data = await response.json();
+        console.log('API Response:', data);
+
+        return data.content[0].text;
+    } catch (error) {
+        console.error('API Call Error:', error);
+        throw error;
+    }
+}
+
 
 // Documentation Routes
 app.get('/readme1', async (req, res) => {
