@@ -1,0 +1,168 @@
+=== Подробный анализ проекта ===
+
+
+=== Основные файлы проекта ===
+• public\js\generator.js
+• server.js
+• services\claude.js
+• src\config\development.js
+• src\config\index.js
+• src\config\production.js
+• src\utils\template.js
+
+=== API Endpoints ===
+• /
+• /api/generate-code
+• /api/generate-structure
+• /readme1
+• /readme2
+• /readme3
+• a
+
+=== Зависимости ===
+
+Основные зависимости:
+• express: ^4.21.1
+• marked: ^4.3.0
+• node-fetch: ^2.7.0
+
+=== npm скрипты ===
+• start: node server.js
+• dev: nodemon server.js
+
+=== Содержимое важных файлов ===
+
+--- package.json ---
+{
+  "name": "dev-guides-new",
+  "version": "1.0.0",
+  "description": "Development guides generator",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "nodemon server.js"
+  },
+  "dependencies": {
+    "express": "^4.21.1",
+    "marked": "^4.3.0",
+    "node-fetch": "^2.7.0"
+  },
+  "engines": {
+    "node": ">=14.0.0"
+  }
+}
+
+
+--- server.js ---
+﻿// Импорты и настройки
+const express = require("express");
+const path = require("path");
+const fs = require("fs");
+const marked = require("marked");
+const fetch = require("node-fetch");
+const createPageTemplate = require('./src/utils/template');
+
+const app = express();
+app.use(express.json());
+app.use(express.static("public"));
+
+const REQUIRED_FILES = ['README.md', 'README2.md', 'README3.md'];
+
+REQUIRED_FILES.forEach(file => {
+  const filePath = path.join(__dirname, file);
+  if (!fs.existsSync(filePath)) {
+    console.warn(`Warning: ${file} not found at ${filePath}`);
+    // Create empty file if it doesn't exist
+    fs.writeFileSync(filePath, '# ' + file.replace('.md', ''));
+  }
+});
+
+// Конфигурация
+const config = {
+    api: {
+        url: 'https://api.anthropic.com/v1/messages',
+        version: '2023-06-01',
+        model: 'claude-3-opus-20240229',
+        maxTokens: 4000,
+        temperature: 0.7
+    },
+    port: process.env.PORT || 3000
+};
+
+// Обновим общие стили
+const commonStyle...
+
+--- public\js\generator.js ---
+async function generate() {
+    const description = document.getElementById('description').value;
+    const loading = document.getElementById('loading');
+    const error = document.getElementById('error');
+    const output = document.getElementById('output');
+    const button = document.querySelector('button');
+
+    loading.style.display = 'block';
+    error.style.display = 'none';
+    output.innerHTML = '';
+    button.disabled = true;
+    button.style.opacity = '0.7';
+
+    try {
+        const structureResponse = await fetch('/api/generate-structure', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ description })
+        });
+
+        const structureData = await structureResponse.json();
+        if (structureData.error) throw new Error(structureData.error);
+
+        output.innerHTML = "<div class='code-section'>";
+        output.innerHTML += "<div class='code-header'>Project Structure</div>";
+        output.in...
+
+--- services\claude.js ---
+﻿class ClaudeService {
+    constructor(apiKey) {
+        this.apiKey = apiKey;
+        this.apiUrl = 'https://api.anthropic.com/v1/messages';
+    }
+
+    async generateStructure(description) {
+        console.log(`Analyzing project: ${description}`);
+        try {
+            const prompt = `Create a detailed project structure for this description: "${description}".
+            The project should be well-organized and include all necessary files and folders.
+            Return ONLY a JSON object with this structure:
+            {
+                "name": "project-name",
+                "folders": [
+                    {
+                        "name": "folder-name",
+                        "description": "folder purpose",
+                        "files": [
+                            {
+                                "name": "filename.ext",
+                                "description": "file purpose"
+                            }
+                        ]
+                    }
+         ...
+
+--- src\config\development.js ---
+module.exports = {
+    api: {
+        url: 'https://api.anthropic.com/v1/messages',
+        version: '2023-06-01',
+        model: 'claude-3-opus-20240229',
+        maxTokens: 4000,
+        temperature: 0.9 // Higher temperature for development
+    },
+    server: {
+        port: process.env.PORT || 3000,
+        env: 'development'
+    },
+    logging: {
+        level: 'debug',
+        format: 'dev'
+    }
+};

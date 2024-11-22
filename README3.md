@@ -1,15 +1,16 @@
-﻿Generated Projects Guide
-Available Project Types
-1. Web Applications
+﻿```markdown
+# Generated Projects Guide
 
-Digital Clocks
-Calculators
-Simple Games
-Landing Pages
+## Available Project Types
 
-2. Mobile Applications
-Example Android app structure:
-kotlinCopy// MainActivity.kt
+### 1. Web Applications
+- Digital Clocks
+- Calculators
+- Simple Games
+
+### 2. Mobile Applications
+Example Android app:
+```kotlin
 class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -18,8 +19,7 @@ class MainActivity : AppCompatActivity() {
 }
 3. Games
 Example game structure:
-javascriptCopy// game.js
-const game = {
+javascriptCopyconst game = {
     init() {
         // Game initialization
     },
@@ -34,4 +34,9 @@ Multiple deployment targets
 Enhanced code generation
 Project management UI
 
-[See Technical Documentation for development details]
+Copy
+После создания файлов:
+```powershell
+git add .
+git commit -m "Update documentation files"
+git push heroku main

@@ -1,3 +1,9 @@
+# Полный код основных файлов проекта
+
+
+## server.js
+
+```javascript
 ﻿// Импорты и настройки
 const express = require("express");
 const path = require("path");
@@ -368,3 +374,315 @@ app.listen(config.port, () => {
     console.log(`Server running on port ${config.port}`);
     console.log('API Key status:', process.env.CLAUDE_API_KEY ? 'Present' : 'Missing');
 });
+```
+
+### Описание:
+
+- Основной файл сервера Express
+- Обрабатывает HTTP запросы
+- Отвечает за маршрутизацию
+- Подключает статические файлы из директории public
+- Интегрируется с API Claude
+
+
+## services/claude.js
+
+```javascript
+﻿class ClaudeService {
+    constructor(apiKey) {
+        this.apiKey = apiKey;
+        this.apiUrl = 'https://api.anthropic.com/v1/messages';
+    }
+
+    async generateStructure(description) {
+        console.log(`Analyzing project: ${description}`);
+        try {
+            const prompt = `Create a detailed project structure for this description: "${description}".
+            The project should be well-organized and include all necessary files and folders.
+            Return ONLY a JSON object with this structure:
+            {
+                "name": "project-name",
+                "folders": [
+                    {
+                        "name": "folder-name",
+                        "description": "folder purpose",
+                        "files": [
+                            {
+                                "name": "filename.ext",
+                                "description": "file purpose"
+                            }
+                        ]
+                    }
+                ]
+            }`;
+
+            const response = await this.makeRequest(prompt);
+            return JSON.parse(response);
+        } catch (error) {
+            console.error('Structure generation error:', error);
+            throw error;
+        }
+    }
+
+    async generateCode(structure, description) {
+        console.log(`Generating code for: ${description}`);
+        try {
+            const prompt = `Generate complete code for all files in this project: "${description}".
+            Project structure: ${JSON.stringify(structure)}
+            Return ONLY a JSON object where keys are file paths and values are complete file contents.
+            Make the code fully functional and production-ready.`;
+
+            const response = await this.makeRequest(prompt);
+            return JSON.parse(response);
+        } catch (error) {
+            console.error('Code generation error:', error);
+            throw error;
+        }
+    }
+
+    async makeRequest(prompt) {
+        try {
+            const response = await fetch(this.apiUrl, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'x-api-key': this.apiKey,
+                    'anthropic-version': '2023-06-01'
+                },
+                body: JSON.stringify({
+                    model: 'claude-3-opus-20240229',
+                    max_tokens: 4000,
+                    messages: [{
+                        role: 'user',
+                        content: prompt
+                    }],
+                    temperature: 0.5
+                })
+            });
+
+            if (!response.ok) {
+                throw new Error(`API error: ${response.status}`);
+            }
+
+            const data = await response.json();
+            console.log('Claude response:', data);
+            return data.content[0].text;
+        } catch (error) {
+            console.error('Claude API error:', error);
+            throw error;
+        }
+    }
+}
+
+module.exports = ClaudeService;
+
+```
+
+### Описание:
+
+- Сервис для работы с API Claude
+- Отправляет запросы на генерацию структуры проекта
+- Обрабатывает ответы от API
+- Форматирует данные для фронтенда
+
+
+## public/js/generator.js
+
+```javascript
+async function generate() {
+    const description = document.getElementById('description').value;
+    const loading = document.getElementById('loading');
+    const error = document.getElementById('error');
+    const output = document.getElementById('output');
+    const button = document.querySelector('button');
+
+    loading.style.display = 'block';
+    error.style.display = 'none';
+    output.innerHTML = '';
+    button.disabled = true;
+    button.style.opacity = '0.7';
+
+    try {
+        const structureResponse = await fetch('/api/generate-structure', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ description })
+        });
+
+        const structureData = await structureResponse.json();
+        if (structureData.error) throw new Error(structureData.error);
+
+        output.innerHTML = "<div class='code-section'>";
+        output.innerHTML += "<div class='code-header'>Project Structure</div>";
+        output.innerHTML += "<pre><code class='language-json'>" + 
+            JSON.stringify(structureData, null, 2) + "</code></pre>";
+        output.innerHTML += "</div>";
+
+        const codeResponse = await fetch('/api/generate-code', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ description, structure: structureData })
+        });
+
+        const codeData = await codeResponse.json();
+        if (codeData.error) throw new Error(codeData.error);
+
+        Object.entries(codeData).forEach(([filename, content]) => {
+            output.innerHTML += "<div class='code-section'>";
+            output.innerHTML += "<div class='code-header'>" + filename + "</div>";
+            output.innerHTML += "<pre><code>" + content + "</code></pre>";
+            output.innerHTML += "</div>";
+        });
+
+        Prism.highlightAll();
+    } catch (err) {
+        error.textContent = 'Error: ' + err.message;
+        error.style.display = 'block';
+    } finally {
+        loading.style.display = 'none';
+        button.disabled = false;
+        button.style.opacity = '1';
+    }
+}
+```
+
+### Описание:
+
+- Клиентский JavaScript код
+- Обрабатывает пользовательский ввод
+- Отправляет AJAX запросы на сервер
+- Отображает результаты генерации
+
+
+## src/utils/template.js
+
+```javascript
+const createPageTemplate = (title, content, additionalStyles = '') => `
+<!DOCTYPE html>
+<html>
+<head>
+    <title>${title}</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/github-markdown-css/5.2.0/github-markdown.min.css" rel="stylesheet">
+    <style>
+        ${commonStyles}
+        ${additionalStyles}
+    </style>
+</head>
+<body>
+    <div class="top-navigation">
+        <a href="/">Home</a>
+        <span class="divider">|</span>
+        <a href="/readme1">Overview</a>
+        <span class="divider">|</span>
+        <a href="/readme2">Development</a>
+        <span class="divider">|</span>
+        <a href="/readme3">Examples</a>
+    </div>
+    <div class="container markdown-body">
+        ${content}
+    </div>
+</body>
+</html>
+`;
+
+module.exports = createPageTemplate;
+```
+
+### Описание:
+
+- Утилита для создания HTML шаблонов
+- Генерирует разметку страницы
+- Подставляет динамические данные
+
+
+## src/config/index.js
+
+```javascript
+const config = {
+    production: {
+        api: {
+            url: 'https://api.anthropic.com/v1/messages',
+            version: '2023-06-01',
+            model: 'claude-3-opus-20240229',
+            maxTokens: 4000,
+            temperature: 0.7
+        }
+    },
+    development: {
+        api: {
+            url: 'https://api.anthropic.com/v1/messages',
+            version: '2023-06-01',
+            model: 'claude-3-opus-20240229',
+            maxTokens: 4000,
+            temperature: 0.9 // Можно настроить разные параметры для dev
+        }
+    }
+};
+
+const env = process.env.NODE_ENV || 'development';
+module.exports = config[env];
+```
+
+### Описание:
+
+- Конфигурационные файлы
+- Настройки для разных окружений
+- Параметры API и сервера
+
+
+## src/config/development.js
+
+```javascript
+module.exports = {
+    api: {
+        url: 'https://api.anthropic.com/v1/messages',
+        version: '2023-06-01',
+        model: 'claude-3-opus-20240229',
+        maxTokens: 4000,
+        temperature: 0.9 // Higher temperature for development
+    },
+    server: {
+        port: process.env.PORT || 3000,
+        env: 'development'
+    },
+    logging: {
+        level: 'debug',
+        format: 'dev'
+    }
+};
+```
+
+### Описание:
+
+- Конфигурационные файлы
+- Настройки для разных окружений
+- Параметры API и сервера
+
+
+## src/config/production.js
+
+```javascript
+module.exports = {
+    api: {
+        url: 'https://api.anthropic.com/v1/messages',
+        version: '2023-06-01',
+        model: 'claude-3-opus-20240229',
+        maxTokens: 4000,
+        temperature: 0.7
+    },
+    server: {
+        port: process.env.PORT || 3000,
+        env: 'production'
+    },
+    logging: {
+        level: 'error',
+        format: 'combined'
+    }
+};
+```
+
+### Описание:
+
+- Конфигурационные файлы
+- Настройки для разных окружений
+- Параметры API и сервера

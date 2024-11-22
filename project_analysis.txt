@@ -1,0 +1,38 @@
+=== Detailed Project Analysis ===
+
+Project Name: whatwg-url
+Description: An implementation of the WHATWG URL Standard's URL API and parsing machinery
+
+=== Technology Stack ===
+• Express.js
+
+=== Main Features ===
+• Decode content encoding (gzip/deflate) properly and convert string output (such as `res.text()` and `res.json()`) to UTF-8 automatically.
+• Make conscious trade-off when following [WHATWG fetch spec][whatwg-fetch] and [stream spec](https://streams.spec.whatwg.org/) implementation details, document known differences.
+• Stay consistent with `window.fetch` API.
+• Use native Node streams for body on both request and response.
+• Use native promise but allow substituting it with [insert your favorite promise library].
+• Useful extensions such as timeout, redirect limit, response size limit, [explicit errors](ERROR-HANDLING.md) for troubleshooting.
+
+=== Key Files Content ===
+
+--- package.json ---
+{'tr46': '~0.0.3', 'webidl-conversions': '^3.0.0', 'eslint': '^2.6.0', 'istanbul': '~0.4.3', 'mocha': '^2.2.4', 'recast': '~0.10.29', 'request': '^2.55.0', 'webidl2js': '^3.0.2'}
+--- main_js ---
+const config = {
+    production: {
+        api: {
+            url: 'https://api.anthropic.com/v1/messages',
+            version: '2023-06-01',
+            model: 'claude-3-opus-20240229',
+            maxTokens: 4000,
+            temperature: 0.7
+        }
+    },
+    development: {
+        api: {
+            url: 'https://api.anthropic.com/v1/messages',
+            version: '2023-06-01',
+            model: 'claude-3-opus-20240229',
+            maxTokens: 4000,
+            temperature: 0.9 // Можн...
