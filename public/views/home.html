@@ -6,5 +6,32 @@
     <link href="/css/common.css" rel="stylesheet">
     <link href="/css/home.css" rel="stylesheet">
 </head>
-<!-- ... остальной HTML код ... -->
+<body>
+    <div class="top-navigation">
+        <a href="/">Home</a> |
+        <a href="/readme1">Overview</a> |
+        <a href="/readme2">Development</a> |
+        <a href="/readme3">Examples</a>
+    </div>
+
+    <div class="container">
+        <h1>AI Project Generator</h1>
+        <div class="form-group">
+            <label for="description">Project Description:</label>
+            <textarea 
+                id="description" 
+                placeholder="Опишите ваш проект подробно..."
+                spellcheck="true"
+            ></textarea>
+        </div>
+        <button onclick="generate()">Generate Project</button>
+        <div id="loading">Generating project structure and code...</div>
+        <div id="error"></div>
+        <div id="output"></div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-json.min.js"></script>
+    <script src="/js/generator.js"></script>
+</body>
 </html>
