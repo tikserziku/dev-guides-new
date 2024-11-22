@@ -1,6 +1,4 @@
-﻿$readmePath = "G:\dev-guides-new\README.md"
-$newContent = @"
-# AI Code Generator and Deployment Platform
+﻿# AI Code Generator and Deployment Platform
 
 ## Project Overview
 This project consists of two main components:

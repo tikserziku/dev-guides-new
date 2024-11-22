@@ -1,0 +1,99 @@
+.deployment-container {
+    max-width: 800px;
+    margin: 2rem auto;
+    padding: 2rem;
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.form-group {
+    margin-bottom: 1.5rem;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-weight: 500;
+}
+
+.form-group input,
+.form-group select {
+    width: 100%;
+    padding: 0.75rem;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+}
+
+.env-row {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 0.5rem;
+}
+
+.env-row input {
+    flex: 1;
+}
+
+.remove-env {
+    padding: 0 1rem;
+    background: #ff4444;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+#addEnvVar {
+    background: none;
+    border: 1px dashed #666;
+    padding: 0.5rem 1rem;
+    color: #666;
+    cursor: pointer;
+    margin-top: 0.5rem;
+}
+
+.deployment-status {
+    margin: 1rem 0;
+    padding: 1rem;
+    background: #f8f9fa;
+    border-radius: 4px;
+    min-height: 3rem;
+}
+
+.action-buttons {
+    display: flex;
+    justify-content: flex-end;
+    gap: 1rem;
+}
+
+#deployButton {
+    background: #0366d6;
+    color: white;
+    padding: 0.75rem 2rem;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: 500;
+    transition: background 0.2s;
+}
+
+#deployButton:hover {
+    background: #0256b9;
+}
+
+.success-message {
+    color: #28a745;
+    padding: 1rem;
+    border: 1px solid #28a745;
+    border-radius: 4px;
+    margin-top: 1rem;
+}
+
+.error-message {
+    color: #dc3545;
+    padding: 1rem;
+    border: 1px solid #dc3545;
+    border-radius: 4px;
+    margin-top: 1rem;
+}

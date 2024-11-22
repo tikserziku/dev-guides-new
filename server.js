@@ -7,7 +7,11 @@ const fetch = require("node-fetch");
 const { createPageTemplate, commonStyles } = require('./src/utils/template');
 const homePageStyles = require('./src/styles/home');
 const homeContent = require('./src/templates/home');
+const deploymentForm = require('./src/templates/deployment-form');
 
+app.get('/deploy', (req, res) => {
+    res.send(createPageTemplate('Deploy Project', deploymentForm));
+});
 const app = express();
 app.use(express.json());
 app.use(express.static("public"));
