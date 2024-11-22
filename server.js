@@ -264,11 +264,18 @@ app.get('/', (req, res) => {
         .nav-links {
             text-align: center;
             margin-bottom: 20px;
+            padding: 10px 0;
+            border-bottom: 1px solid #eee;
         }
         .nav-links a {
             margin: 0 10px;
             color: #0366d6;
             text-decoration: none;
+            padding: 5px 10px;
+        }
+        .nav-links a:hover {
+            background: #f0f0f0;
+            border-radius: 4px;
         }
         textarea {
             width: 100%;
@@ -287,6 +294,9 @@ app.get('/', (req, res) => {
             border-radius: 4px;
             cursor: pointer;
             font-size: 16px;
+        }
+        button:hover {
+            background: #45a049;
         }
         #output {
             margin-top: 20px;
@@ -322,10 +332,22 @@ app.get('/', (req, res) => {
             color: #666;
             margin: 10px 0;
         }
+        .footer-nav {
+            text-align: center;
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #eee;
+        }
+        .footer-nav a {
+            margin: 0 10px;
+            color: #0366d6;
+            text-decoration: none;
+        }
     </style>
 </head>
 <body>
     <div class="container">
+        <!-- Верхняя навигация -->
         <div class="nav-links">
             <a href="/">Home</a> |
             <a href="/readme1">Overview</a> |
@@ -339,6 +361,13 @@ app.get('/', (req, res) => {
         <div id="loading">Генерация проекта...</div>
         <div id="error"></div>
         <div id="output"></div>
+
+        <!-- Нижняя навигация -->
+        <div class="footer-nav">
+            <a href="/">Home</a> |
+            <a href="/readme1">Documentation 1</a> |
+            <a href="/readme2">Documentation 2</a>
+        </div>
     </div>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
