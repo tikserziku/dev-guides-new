@@ -15,6 +15,7 @@
     display: block;
     margin-bottom: 0.5rem;
     font-weight: 500;
+    color: #2c3e50;
 }
 
 .form-group input,
@@ -23,12 +24,22 @@
     padding: 0.75rem;
     border: 1px solid #ddd;
     border-radius: 4px;
+    font-size: 16px;
+    transition: border-color 0.3s ease;
+}
+
+.form-group input:focus,
+.form-group select:focus {
+    outline: none;
+    border-color: #0366d6;
+    box-shadow: 0 0 0 2px rgba(3,102,214,0.2);
 }
 
 .env-row {
     display: flex;
     gap: 1rem;
     margin-bottom: 0.5rem;
+    align-items: center;
 }
 
 .env-row input {
@@ -36,21 +47,36 @@
 }
 
 .remove-env {
-    padding: 0 1rem;
+    padding: 0.5rem 1rem;
     background: #ff4444;
     color: white;
     border: none;
     border-radius: 4px;
     cursor: pointer;
+    transition: background 0.3s ease;
+    font-weight: bold;
+}
+
+.remove-env:hover {
+    background: #ff1111;
 }
 
 #addEnvVar {
     background: none;
     border: 1px dashed #666;
-    padding: 0.5rem 1rem;
+    padding: 0.75rem 1rem;
     color: #666;
     cursor: pointer;
     margin-top: 0.5rem;
+    width: 100%;
+    transition: all 0.3s ease;
+    font-weight: 500;
+}
+
+#addEnvVar:hover {
+    background: #f8f9fa;
+    border-color: #0366d6;
+    color: #0366d6;
 }
 
 .deployment-status {
@@ -59,12 +85,32 @@
     background: #f8f9fa;
     border-radius: 4px;
     min-height: 3rem;
+    transition: all 0.3s ease;
+}
+
+.deployment-status.info {
+    background: #e3f2fd;
+    color: #1565c0;
+    border-left: 4px solid #1565c0;
+}
+
+.deployment-status.success {
+    background: #e8f5e9;
+    color: #2e7d32;
+    border-left: 4px solid #2e7d32;
+}
+
+.deployment-status.error {
+    background: #ffebee;
+    color: #c62828;
+    border-left: 4px solid #c62828;
 }
 
 .action-buttons {
     display: flex;
     justify-content: flex-end;
     gap: 1rem;
+    margin-top: 2rem;
 }
 
 #deployButton {
@@ -75,11 +121,23 @@
     border-radius: 4px;
     cursor: pointer;
     font-weight: 500;
-    transition: background 0.2s;
+    transition: all 0.3s ease;
+    font-size: 16px;
 }
 
 #deployButton:hover {
     background: #0256b9;
+    transform: translateY(-1px);
+}
+
+#deployButton:active {
+    transform: translateY(1px);
+}
+
+#deployButton:disabled {
+    background: #ccc;
+    cursor: not-allowed;
+    transform: none;
 }
 
 .success-message {
@@ -88,6 +146,7 @@
     border: 1px solid #28a745;
     border-radius: 4px;
     margin-top: 1rem;
+    animation: fadeIn 0.3s ease;
 }
 
 .error-message {
@@ -96,4 +155,27 @@
     border: 1px solid #dc3545;
     border-radius: 4px;
     margin-top: 1rem;
+    animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(-10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* Responsive styles */
+@media (max-width: 768px) {
+    .deployment-container {
+        margin: 1rem;
+        padding: 1rem;
+    }
+
+    .env-row {
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+
+    .remove-env {
+        width: 100%;
+    }
 }
