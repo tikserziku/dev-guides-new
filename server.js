@@ -261,21 +261,35 @@ app.get('/', (req, res) => {
             border-radius: 8px;
             box-shadow: 0 2px 4px rgba(0,0,0,0.1);
         }
-        .nav-links {
+        .top-navigation {
             text-align: center;
-            margin-bottom: 20px;
-            padding: 10px 0;
-            border-bottom: 1px solid #eee;
+            margin-bottom: 30px;
+            padding: 10px;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
         }
-        .nav-links a {
-            margin: 0 10px;
+        .top-navigation a {
+            margin: 0 15px;
             color: #0366d6;
             text-decoration: none;
             padding: 5px 10px;
-        }
-        .nav-links a:hover {
-            background: #f0f0f0;
             border-radius: 4px;
+            transition: background-color 0.2s;
+        }
+        .top-navigation a:hover {
+            background-color: #f0f0f0;
+        }
+        .bottom-navigation {
+            text-align: center;
+            margin-top: 30px;
+            padding: 15px;
+            border-top: 1px solid #eee;
+        }
+        .bottom-navigation a {
+            margin: 0 15px;
+            color: #0366d6;
+            text-decoration: none;
         }
         textarea {
             width: 100%;
@@ -285,18 +299,20 @@ app.get('/', (req, res) => {
             border: 1px solid #ddd;
             border-radius: 4px;
             font-size: 16px;
+            resize: vertical;
         }
         button {
-            background: #4CAF50;
+            background: #0366d6;
             color: white;
             padding: 12px 24px;
             border: none;
             border-radius: 4px;
             cursor: pointer;
             font-size: 16px;
+            transition: background-color 0.2s;
         }
         button:hover {
-            background: #45a049;
+            background: #0256b9;
         }
         #output {
             margin-top: 20px;
@@ -315,12 +331,8 @@ app.get('/', (req, res) => {
             border-radius: 4px 4px 0 0;
             font-family: monospace;
         }
-        pre {
-            margin: 0;
-            white-space: pre-wrap;
-        }
         #error {
-            color: red;
+            color: #dc3545;
             padding: 10px;
             background: #fee;
             border-radius: 4px;
@@ -331,41 +343,38 @@ app.get('/', (req, res) => {
             display: none;
             color: #666;
             margin: 10px 0;
-        }
-        .footer-nav {
             text-align: center;
-            margin-top: 30px;
-            padding-top: 20px;
-            border-top: 1px solid #eee;
         }
-        .footer-nav a {
-            margin: 0 10px;
-            color: #0366d6;
-            text-decoration: none;
+        .divider {
+            color: #ccc;
+            margin: 0 5px;
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <!-- Верхняя навигация -->
-        <div class="nav-links">
-            <a href="/">Home</a> |
-            <a href="/readme1">Overview</a> |
-            <a href="/readme2">Development</a> |
-            <a href="/readme3">Examples</a>
-        </div>
+    <!-- Верхняя навигация -->
+    <div class="top-navigation">
+        <a href="/">Home</a><span class="divider">|</span>
+        <a href="/readme1">Overview</a><span class="divider">|</span>
+        <a href="/readme2">Development</a><span class="divider">|</span>
+        <a href="/readme3">Examples</a>
+    </div>
 
+    <div class="container">
         <h1>AI Project Generator</h1>
-        <textarea id="description" placeholder="Опишите ваш проект..."></textarea>
-        <button onclick="generate()">Сгенерировать проект</button>
-        <div id="loading">Генерация проекта...</div>
+        <div>
+            <label for="description">Project Description:</label>
+            <textarea id="description" placeholder="Опишите ваш проект подробно..."></textarea>
+        </div>
+        <button onclick="generate()">Generate Structure</button>
+        <div id="loading">Generating project...</div>
         <div id="error"></div>
         <div id="output"></div>
 
         <!-- Нижняя навигация -->
-        <div class="footer-nav">
-            <a href="/">Home</a> |
-            <a href="/readme1">Documentation 1</a> |
+        <div class="bottom-navigation">
+            <a href="/">Home</a><span class="divider">|</span>
+            <a href="/readme1">Documentation 1</a><span class="divider">|</span>
             <a href="/readme2">Documentation 2</a>
         </div>
     </div>
@@ -417,7 +426,7 @@ app.get('/', (req, res) => {
 
                 Prism.highlightAll();
             } catch (err) {
-                error.textContent = 'Ошибка: ' + err.message;
+                error.textContent = 'Error: ' + err.message;
                 error.style.display = 'block';
             } finally {
                 loading.style.display = 'none';
