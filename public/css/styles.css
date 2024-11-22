@@ -15,9 +15,10 @@ body {
     color: #abb2bf;  /* Светло-серый текст */
 }
 
+/* Code section headers */
 .code-header {
-    background: #21252b;  /* Темный синий */
-    color: #ffffff;
+    background: #21252b;
+    color: #ffffff; /* Белый текст для заголовков */
     padding: 10px 15px;
     border-radius: 4px 4px 0 0;
     margin: -20px -20px 20px;
@@ -25,13 +26,15 @@ body {
     font-size: 14px;
 }
 
-/* Code content */
+/* Code section content */
 .code-section pre {
+    background: #282c34;
     color: #abb2bf;
     margin: 0;
-    padding: 10px 0;
+    padding: 15px;
+    border-radius: 0 0 4px 4px;
+    overflow-x: auto;
     font-family: 'Consolas', monospace;
-    white-space: pre-wrap;
 }
 
 .code-section code {
@@ -71,4 +74,21 @@ body {
     padding: 10px;
     border-left: 4px solid #dc3545;
     background: #fff8f8;
+}
+
+/* HTML content highlighting */
+.code-section pre code.language-html {
+    color: #e06c75; /* Цвет для HTML тегов */
+}
+
+.code-section pre code.language-html .tag {
+    color: #61afef; /* Цвет для названий тегов */
+}
+
+.code-section pre code.language-html .attr-name {
+    color: #d19a66; /* Цвет для атрибутов */
+}
+
+.code-section pre code.language-html .attr-value {
+    color: #98c379; /* Цвет для значений атрибутов */
 }
