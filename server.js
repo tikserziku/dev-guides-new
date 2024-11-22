@@ -69,7 +69,8 @@ async function callClaudeAPI(prompt) {
                 'anthropic-version': config.api.version,
                 'x-api-key': process.env.CLAUDE_API_KEY
             },
-            body: JSON.stringify(requestBody)
+            body: JSON.stringify(requestBody),
+            timeout: 25000 // 25 секунд, чтобы уложиться в лимит Heroku
         });
 
         if (!response.ok) {
@@ -122,18 +123,17 @@ Return ONLY a JSON object with this structure:
 
 app.post("/api/generate-code", async (req, res) => {
     try {
-        const { description, structure } = req.body;
-        console.log('Generating code for:', description);
-
-        const prompt = `Generate code for this project description: ${description}
-Project structure: ${JSON.stringify(structure)}
-Return ONLY a JSON object where keys are file paths and values are complete file contents.`;
-
-        const result = await callClaudeAPI(prompt);
+        const timeoutPromise = new Promise((_, reject) => 
+            setTimeout(() => reject(new Error('Request timeout')), 25000)
+        );
+        const resultPromise = callClaudeAPI(prompt);
+        
+        const result = await Promise.race([timeoutPromise, resultPromise]);
         res.json(JSON.parse(result));
     } catch (error) {
         console.error('Code generation error:', error);
-        res.status(500).json({ error: error.message });
+        res.status(error.message === 'Request timeout' ? 503 : 500)
+           .json({ error: error.message });
     }
 });
 
