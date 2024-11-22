@@ -132,11 +132,12 @@ Project structure: ${JSON.stringify(structure)}
 Return ONLY a JSON object where keys are file paths and values are complete file contents.`;
 
         const result = await callClaudeAPI(prompt);
-        res.json(JSON.parse(result));
+        // Экранируем HTML перед парсингом JSON
+        const sanitizedResult = result.replace(/</g, '\\u003c').replace(/>/g, '\\u003e');
+        res.json(JSON.parse(sanitizedResult));
     } catch (error) {
         console.error('Code generation error:', error);
-        const status = error.message.includes('timed out') ? 503 : 500;
-        res.status(status).json({ error: error.message });
+        res.status(500).json({ error: error.message });
     }
 });
 
