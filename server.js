@@ -48,46 +48,7 @@ const readMarkdownFile = async (filename) => {
 };
 
 // Claude API helper
-async function callClaudeAPI(prompt) {
-    try {
-        const requestBody = {
-            model: config.api.model,
-            messages: [{
-                role: "user",
-                content: prompt
-            }],
-            max_tokens: config.api.maxTokens,
-            temperature: config.api.temperature
-        };
 
-        console.log('API Request:', requestBody);
-
-        const response = await fetch(config.api.url, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'anthropic-version': config.api.version,
-                'x-api-key': process.env.CLAUDE_API_KEY
-            },
-            body: JSON.stringify(requestBody),
-            timeout: 25000 // 25 секунд, чтобы уложиться в лимит Heroku
-        });
-
-        if (!response.ok) {
-            const errorData = await response.text();
-            console.error('API Error Response:', errorData);
-            throw new Error(`API Error: ${errorData}`);
-        }
-
-        const data = await response.json();
-        console.log('API Response:', data);
-
-        return data.content[0].text;
-    } catch (error) {
-        console.error('API Call Error:', error);
-        throw error;
-    }
-}
 
 // API Routes
 app.post("/api/generate-structure", async (req, res) => {
@@ -113,21 +74,12 @@ Return ONLY a JSON object with this structure:
     }
 }`;
 
-        try {
-            const result = await callClaudeAPI(prompt);
-            res.json(JSON.parse(result));
-        } catch (error) {
-            if (error.message.includes('timed out')) {
-                res.status(503).json({ 
-                    error: 'The request took too long to process. Please try again.'
-                });
-            } else {
-                throw error;
-            }
-        }
+        const result = await callClaudeAPI(prompt);
+        res.json(JSON.parse(result));
     } catch (error) {
         console.error('Structure generation error:', error);
-        res.status(500).json({ error: error.message });
+        const status = error.message.includes('timed out') ? 503 : 500;
+        res.status(status).json({ error: error.message });
     }
 });
 
@@ -140,21 +92,12 @@ app.post("/api/generate-code", async (req, res) => {
 Project structure: ${JSON.stringify(structure)}
 Return ONLY a JSON object where keys are file paths and values are complete file contents.`;
 
-        try {
-            const result = await callClaudeAPI(prompt);
-            res.json(JSON.parse(result));
-        } catch (error) {
-            if (error.message.includes('timed out')) {
-                res.status(503).json({ 
-                    error: 'The request took too long to process. Please try again.'
-                });
-            } else {
-                throw error;
-            }
-        }
+        const result = await callClaudeAPI(prompt);
+        res.json(JSON.parse(result));
     } catch (error) {
         console.error('Code generation error:', error);
-        res.status(500).json({ error: error.message });
+        const status = error.message.includes('timed out') ? 503 : 500;
+        res.status(status).json({ error: error.message });
     }
 });
 
@@ -172,21 +115,21 @@ async function callClaudeAPI(prompt) {
 
         console.log('API Request:', requestBody);
 
-        const controller = new AbortController();
-        const timeout = setTimeout(() => controller.abort(), 20000);
-
-        const response = await fetch(config.api.url, {
+        const fetchPromise = fetch(config.api.url, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
                 'anthropic-version': config.api.version,
                 'x-api-key': process.env.CLAUDE_API_KEY
             },
-            body: JSON.stringify(requestBody),
-            signal: controller.signal
+            body: JSON.stringify(requestBody)
         });
 
-        clearTimeout(timeout);
+        const timeoutPromise = new Promise((_, reject) => {
+            setTimeout(() => reject(new Error('Request took too long')), 45000);
+        });
+
+        const response = await Promise.race([fetchPromise, timeoutPromise]);
 
         if (!response.ok) {
             const errorData = await response.text();
@@ -200,6 +143,9 @@ async function callClaudeAPI(prompt) {
         return data.content[0].text;
     } catch (error) {
         console.error('API Call Error:', error);
+        if (error.message === 'Request took too long') {
+            throw new Error('Request timed out. Please try again.');
+        }
         throw error;
     }
 }
