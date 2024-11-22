@@ -1,4 +1,4 @@
-﻿// Импорты и настройки
+﻿// Импорты
 const express = require("express");
 const path = require("path");
 const fs = require("fs");
@@ -9,22 +9,25 @@ const homePageStyles = require('./src/styles/home');
 const homeContent = require('./src/templates/home');
 const deploymentForm = require('./src/templates/deployment-form');
 
-app.get('/deploy', (req, res) => {
-    res.send(createPageTemplate('Deploy Project', deploymentForm));
-});
+// Инициализация приложения
 const app = express();
 app.use(express.json());
 app.use(express.static("public"));
 
+// Проверка и создание необходимых файлов
 const REQUIRED_FILES = ['README.md', 'README2.md', 'README3.md'];
 
 REQUIRED_FILES.forEach(file => {
-  const filePath = path.join(__dirname, file);
-  if (!fs.existsSync(filePath)) {
-    console.warn(`Warning: ${file} not found at ${filePath}`);
-    // Create empty file if it doesn't exist
-    fs.writeFileSync(filePath, '# ' + file.replace('.md', ''));
-  }
+ const filePath = path.join(__dirname, file);
+ if (!fs.existsSync(filePath)) {
+   console.warn(`Warning: ${file} not found at ${filePath}`);
+   fs.writeFileSync(filePath, '# ' + file.replace('.md', ''));
+ }
+});
+
+// Маршрут для страницы деплоя
+app.get('/deploy', (req, res) => {
+   res.send(createPageTemplate('Deploy Project', deploymentForm));
 });
 
 // Конфигурация
