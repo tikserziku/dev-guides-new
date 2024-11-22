@@ -233,3 +233,41 @@ output.innerHTML += `
 .deploy-button:hover {
     background: #218838;
 }
+
+/* Добавьте в существующий CSS файл */
+.code-section {
+    background: #1e1e1e;
+    padding: 20px;
+    border-radius: 4px;
+    margin: 20px 0;
+    overflow-x: auto;
+}
+
+.code-section pre {
+    margin: 0;
+    color: #e6e6e6;
+}
+
+.code-section code {
+    font-family: 'Consolas', monospace;
+}
+
+.deploy-section {
+    margin-top: 20px;
+    text-align: right;
+}
+
+.heroku-deploy-btn {
+    background: #430098;
+    color: white;
+    padding: 12px 24px;
+    border: none;
+    border-radius: 4px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background 0.3s;
+}
+
+.heroku-deploy-btn:hover {
+    background: #3a0082;
+}
