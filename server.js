@@ -113,8 +113,18 @@ Return ONLY a JSON object with this structure:
     }
 }`;
 
-        const result = await callClaudeAPI(prompt);
-        res.json(JSON.parse(result));
+        try {
+            const result = await callClaudeAPI(prompt);
+            res.json(JSON.parse(result));
+        } catch (error) {
+            if (error.message.includes('timed out')) {
+                res.status(503).json({ 
+                    error: 'The request took too long to process. Please try again.'
+                });
+            } else {
+                throw error;
+            }
+        }
     } catch (error) {
         console.error('Structure generation error:', error);
         res.status(500).json({ error: error.message });
@@ -130,20 +140,17 @@ app.post("/api/generate-code", async (req, res) => {
 Project structure: ${JSON.stringify(structure)}
 Return ONLY a JSON object where keys are file paths and values are complete file contents.`;
 
-        const timeoutPromise = new Promise((_, reject) => 
-            setTimeout(() => reject(new Error('Request timeout')), 25000)
-        );
-        
         try {
-            const result = await Promise.race([
-                callClaudeAPI(prompt),
-                timeoutPromise
-            ]);
+            const result = await callClaudeAPI(prompt);
             res.json(JSON.parse(result));
-        } catch (timeoutError) {
-            console.error('Request timeout:', timeoutError);
-            res.status(503).json({ error: 'Request timed out. Please try again.' });
-            return;
+        } catch (error) {
+            if (error.message.includes('timed out')) {
+                res.status(503).json({ 
+                    error: 'The request took too long to process. Please try again.'
+                });
+            } else {
+                throw error;
+            }
         }
     } catch (error) {
         console.error('Code generation error:', error);
