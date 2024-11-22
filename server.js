@@ -12,7 +12,8 @@ const deploymentForm = require('./src/templates/deployment-form');
 // Инициализация приложения
 const app = express();
 app.use(express.json());
-app.use(express.static("public"));
+app.use(express.static(path.join(__dirname, "public")));
+app.use('/css', express.static(path.join(__dirname, "public/css")));
 
 // Проверка и создание необходимых файлов
 const REQUIRED_FILES = ['README.md', 'README2.md', 'README3.md'];
@@ -54,7 +55,38 @@ const readMarkdownFile = async (filename) => {
     }
 };
 
-// Claude API helper
+// В server.js добавьте:
+app.post('/api/deployment/deploy', async (req, res) => {
+    try {
+        const projectData = req.body;
+        
+        // Создаем временную директорию для проекта
+        const projectDir = path.join(__dirname, 'temp', `${projectData.name}-${Date.now()}`);
+        await fs.promises.mkdir(projectDir, { recursive: true });
+        
+        // Генерируем файлы проекта
+        for (const [filename, content] of Object.entries(projectData.files)) {
+            await fs.promises.writeFile(
+                path.join(projectDir, filename),
+                content
+            );
+        }
+
+        // Создаем новое приложение на Heroku
+        const herokuAppName = `${projectData.name}-${Date.now()}`;
+        const appUrl = await createHerokuApp(herokuAppName, projectDir);
+        
+        res.json({
+            success: true,
+            url: appUrl
+        });
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            error: error.message
+        });
+    }
+});
 
 
 // API Routes
