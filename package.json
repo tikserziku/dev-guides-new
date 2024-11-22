@@ -8,11 +8,19 @@
     "dev": "nodemon server.js"
   },
   "dependencies": {
-    "express": "^4.21.1",
-    "marked": "^4.3.0",
-    "node-fetch": "^2.7.0"
+    "express": "^4.18.2",
+    "marked": "^11.0.0",
+    "node-fetch": "^2.7.0",
+    "uuid": "^9.0.1"
   },
   "engines": {
-    "node": ">=14.0.0"
-  }
+    "node": "20.x"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/tikserziku/dev-guides-new.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC"
 }
