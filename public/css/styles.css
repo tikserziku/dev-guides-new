@@ -8,19 +8,36 @@ body {
 
 /* Code display */
 .code-section {
-    background: #1e1e1e;
+    background: #282c34;  /* Темно-синий фон */
     padding: 20px;
     border-radius: 4px;
     margin: 20px 0;
-    color: #e6e6e6;
+    color: #abb2bf;  /* Светло-серый текст */
 }
 
 .code-header {
-    background: #2d2d2d;
-    padding: 10px;
+    background: #21252b;  /* Темный синий */
+    color: #ffffff;
+    padding: 10px 15px;
     border-radius: 4px 4px 0 0;
     margin: -20px -20px 20px;
     font-family: monospace;
+    font-size: 14px;
+}
+
+/* Code content */
+.code-section pre {
+    color: #abb2bf;
+    margin: 0;
+    padding: 10px 0;
+    font-family: 'Consolas', monospace;
+    white-space: pre-wrap;
+}
+
+.code-section code {
+    color: inherit;
+    white-space: pre-wrap;
+    font-family: 'Consolas', monospace;
 }
 
 /* Heroku deployment button */
@@ -54,14 +71,4 @@ body {
     padding: 10px;
     border-left: 4px solid #dc3545;
     background: #fff8f8;
-}
-
-/* JSON formatting */
-pre {
-    margin: 0;
-    white-space: pre-wrap;
-}
-
-code {
-    font-family: 'Consolas', monospace;
 }
