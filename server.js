@@ -12,8 +12,9 @@ const deploymentForm = require('./src/templates/deployment-form');
 // Инициализация приложения
 const app = express();
 app.use(express.json());
-app.use(express.static(path.join(__dirname, "public")));
-app.use('/css', express.static(path.join(__dirname, "public/css")));
+app.use(express.static(path.join(__dirname, 'public')));
+app.use('/js', express.static(path.join(__dirname, 'public/js')));
+app.use('/css', express.static(path.join(__dirname, 'public/css')));
 
 // Проверка и создание необходимых файлов
 const REQUIRED_FILES = ['README.md', 'README2.md', 'README3.md'];
