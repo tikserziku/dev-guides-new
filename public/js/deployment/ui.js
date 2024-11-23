@@ -34,6 +34,17 @@ class DeploymentUI {
         }
     }
 
+    // Добавьте в функцию generate() после Prism.highlightAll();
+    output.innerHTML += `
+    <div class="deploy-section">
+        <button class="heroku-deploy-btn" onclick="deployToHeroku()">
+            Deploy to Heroku
+        </button>
+    </div>
+    `;
+
+
+
     gatherProjectData() {
         // Собираем данные из формы
         return {
@@ -45,6 +56,29 @@ class DeploymentUI {
             env: this.gatherEnvironmentVariables(),
             files: window.generatedFiles || {} // Получаем файлы из генератора кода
         };
+    }
+
+    async function deployToHeroku(projectData) {
+        const status = document.getElementById('deploymentStatus');
+        try {
+            status.innerHTML = 'Deploying to Heroku...';
+            const response = await fetch('/api/deployment/deploy', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(projectData)
+            });
+            
+            const result = await response.json();
+            if (result.success) {
+                status.innerHTML = `Deployed successfully: <a href="${result.url}" target="_blank">${result.url}</a>`;
+            } else {
+                throw new Error(result.error);
+            }
+        } catch (error) {
+            status.innerHTML = `Deployment failed: ${error.message}`;
+        }
     }
 
     gatherEnvironmentVariables() {
